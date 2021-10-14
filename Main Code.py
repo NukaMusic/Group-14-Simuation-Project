@@ -31,6 +31,10 @@ god
     Y_i = np.copy(Y)
     fig.suptitle("Frame: " + str(time), fontsize=20)
     points.set_data(X, Y)
+    #No
+    #Don't
+    "Like" \
+    "dsafae"
     return points,
 
 fig = plt.figure()
