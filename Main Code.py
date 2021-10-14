@@ -22,7 +22,7 @@ for coordinates in pos:
 t_max = 5  # simulation time in seconds
 dt = 0.01 # step size
 N = 2 ** 10  # Number of particles
-D = 0.01  # diffusivity
+D = 0.1  # diffusivity
 
 # Domain size
 x_min = -1
@@ -49,8 +49,8 @@ def get_velocities(x, y):
 
 def animate(time, x, y, points, fig):
     v_x, v_y = get_velocities(x, y)
-    x += v_x * dt #+ np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=(N,)) #Lagrange Diffusion
-    y += v_y * dt #+ np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=(N,)) #Lagrange Diffusion
+    x += v_x * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=(N,)) #Lagrange Diffusion
+    y += v_y * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=(N,)) #Lagrange Diffusion
     for i in range(N):
         if x[i] > x_max:
             x[i] = 2 * x_max - x[i]
