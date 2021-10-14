@@ -22,13 +22,20 @@ X_i = np.copy(X)
 Y_i = np.copy(Y)
 
 def animate(time, X, Y, X_i, Y_i, fig):
-
+jfweoi
+feawfae
+fractionsfea
+fa
     X = X_i + np.random.normal(0, 1, size=(N,)) * np.sqrt(2 * D * dt) #Lagrange Diffusion
     Y = Y_i + np.random.normal(0, 1, size=(N,)) * np.sqrt(2 * D * dt) #Lagrange Diffusion
     X_i = np.copy(X)
     Y_i = np.copy(Y)
     fig.suptitle("Frame: " + str(time), fontsize=20)
     points.set_data(X, Y)
+    #No
+    #Don't
+    "Like" \
+    "dsafae"
     return points,
 
 fig = plt.figure()
