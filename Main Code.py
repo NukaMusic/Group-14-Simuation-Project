@@ -23,8 +23,8 @@ Y_i = np.copy(Y)
 
 def animate(time, X, Y, X_i, Y_i, fig):
 
-    X = X_i + np.random.normal(0, 1, size=(N,)) * np.sqrt(2 * D * dt)
-    Y = Y_i + np.random.normal(0, 1, size=(N,)) * np.sqrt(2 * D * dt)
+    X = X_i + np.random.normal(0, 1, size=(N,)) * np.sqrt(2 * D * dt) #Lagrange Diffusion
+    Y = Y_i + np.random.normal(0, 1, size=(N,)) * np.sqrt(2 * D * dt) #Lagrange Diffusion
     X_i = np.copy(X)
     Y_i = np.copy(Y)
     fig.suptitle("Frame: " + str(time), fontsize=20)
