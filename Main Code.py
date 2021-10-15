@@ -20,8 +20,8 @@ for coordinates in pos:
     velocities[index] = vel[index]
 
 t_max = 5  # simulation time in seconds
-dt = 0.01 # step size
-N = 2 ** 10  # Number of particles
+dt = 0.001 # step size
+N = 2 ** 12  # Number of particles
 D = 0.1  # diffusivity
 
 # Domain size
@@ -47,7 +47,7 @@ def get_velocities(x, y):
         y_velocities[i] = velocities[velocity_index][1]
     return x_velocities, y_velocities
 
-def animate(time, x, y, points, fig):
+def lagrange(time, x, y, points, fig):
     v_x, v_y = get_velocities(x, y)
     x += v_x * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=(N,)) #Lagrange Diffusion
     y += v_y * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=(N,)) #Lagrange Diffusion
@@ -65,6 +65,7 @@ def animate(time, x, y, points, fig):
     points.set_data(x, y)
     return points
 
+
 fig = plt.figure()
 ax = plt.axes()
 ax.axis('scaled')
@@ -73,6 +74,6 @@ ax.set_ylim(-1, 1)
 points, = ax.plot(x, y, 'o', markersize= 0.5)
 fig.suptitle("Frame: ", fontsize=20)
 
-anim = animation.FuncAnimation(fig, animate, fargs=(x, y, points, fig), frames=1000, repeat=False, interval=1)
+anim = animation.FuncAnimation(fig, lagrange, fargs=(x, y, points, fig), frames=1000000, repeat=False, interval=1)
 
 plt.show()
