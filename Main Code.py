@@ -2,7 +2,11 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import animation
+import time
+
+starttime = time.time()
+
+print(time.time() - starttime)
 
 database_file = 'velocityCMM3.dat'
 
@@ -19,11 +23,14 @@ for coordinates in pos:
     index = coordinates[1] + coordinates[0] * row_length
     velocities[index] = vel[index]
 
-t_max = 0.1  # simulation time in seconds
+t_max = 0.12  # simulation time in seconds
 dt = 0.001 # step size
-N = 2 ** 10  # Number of particles
+N = 2 ** 16  # Number of particles
 D = 0.1  # diffusivity
-phi = np.zeros(N)
+phi1 = np.ones(N) #Array of ones for phi
+phi0 = np.zeros(N) #Array of zeros for phi
+blue = np.full(N, 'b') #Array of blue for graphing
+red = np.full(N, 'r') #Array of red for graphing
 
 #initial conditions
 #1: 1D problem
@@ -40,30 +47,20 @@ y_max = 1
 x = np.random.uniform(x_min, x_max, size=N)
 y = np.random.uniform(y_min, y_max, size=N)
 
-#color list with same length as the data
-col=[]
-
 if init_type == 2:
-    for i in range(N):
-        if np.sqrt(x[i] ** 2 + y[i] ** 2) < 0.3:
-            phi[i] = 1
-        else:
-            phi[i] = 0
+    phi = np.where(np.sqrt(x ** 2 + y ** 2) < 0.3, phi1, phi0)
+
 if init_type == 3:
-    for i in range(N):
-        if x[i] < 0:
-            phi[i] = 1
-        else:
-            phi[i] = 0
+    phi = np.where(x<0, phi1, phi0)
+
+print(time.time() - starttime)
 
 for i in range(N):
-    if phi[i] == 1:
-        col.append('b')
-    if phi[i] == 0:
-        col.append('r')
+    col = np.where(phi == 1, blue, red)
 
-for i in range (N):
-    plt.scatter(x[i], y[i], color = col[i])
+print(time.time() - starttime)
+
+plt.scatter(x, y, color=col, s=0.1)
 plt.show()
 
 def get_velocities(x, y):
@@ -77,10 +74,13 @@ def get_velocities(x, y):
         y_velocities[i] = velocities[velocity_index][1]
     return x_velocities, y_velocities
 
+print(time.time() - starttime)
+
 for i in np.arange(0, t_max, dt):
     v_x, v_y = get_velocities(x, y)
-    x += v_x * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=(N,)) #Lagrange Diffusion
-    y += v_y * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=(N,)) #Lagrange Diffusion
+    x += v_x * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N) #Lagrange Diffusion and advection
+    y += v_y * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N) #Lagrange Diffusion and advection
+    #Walls (needs heavy optimization)
     for i in range(N):
         if x[i] > x_max:
             x[i] = 2 * x_max - x[i]
@@ -91,7 +91,8 @@ for i in np.arange(0, t_max, dt):
         elif y[i] < y_min:
             y[i] = 2 * y_min - y[i]
 
-for i in range (N):
-    plt.scatter(x[i], y[i], color = col[i])
+plt.scatter(x, y, color=col, s=0.1)
+
+print(time.time() - starttime)
 
 plt.show()
