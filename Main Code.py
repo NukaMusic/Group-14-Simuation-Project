@@ -27,10 +27,10 @@ t_max = 0.12  # simulation time in seconds
 dt = 0.001 # step size
 N = 2 ** 16  # Number of particles
 D = 0.1  # diffusivity
-phi1 = np.ones(N) #Array of ones for phi
-phi0 = np.zeros(N) #Array of zeros for phi
-blue = np.full(N, 'b') #Array of blue for graphing
-red = np.full(N, 'r') #Array of red for graphing
+phi1 = np.ones(N) #Array of ones for where function
+phi0 = np.zeros(N) #Array of zeros for where function
+blue = np.full(N, 'b') #Array of blue for where function
+red = np.full(N, 'r') #Array of red for where function
 
 #initial conditions
 #1: 1D problem
@@ -80,16 +80,11 @@ for i in np.arange(0, t_max, dt):
     v_x, v_y = get_velocities(x, y)
     x += v_x * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N) #Lagrange Diffusion and advection
     y += v_y * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N) #Lagrange Diffusion and advection
-    #Walls (needs heavy optimization)
-    for i in range(N):
-        if x[i] > x_max:
-            x[i] = 2 * x_max - x[i]
-        elif x[i] < x_min:
-            x[i] = 2 * x_min - x[i]
-        if y[i] > y_max:
-            y[i] = 2 * y_max - y[i]
-        elif y[i] < y_min:
-            y[i] = 2 * y_min - y[i]
+    #Walls
+    x = np.where(x > x_max, 2 * x_max - x, x)
+    x = np.where(x < x_min, 2 * x_min - x, x)
+    y = np.where(y > y_max, 2 * y_max - y, y)
+    y = np.where(y < y_min, 2 * y_min - y, y)
 
 plt.scatter(x, y, color=col, s=0.1)
 
