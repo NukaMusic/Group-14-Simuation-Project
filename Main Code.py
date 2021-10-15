@@ -19,10 +19,17 @@ for coordinates in pos:
     index = coordinates[1] + coordinates[0] * row_length
     velocities[index] = vel[index]
 
-t_max = 5  # simulation time in seconds
+t_max = 0.1  # simulation time in seconds
 dt = 0.001 # step size
-N = 2 ** 12  # Number of particles
+N = 2 ** 10  # Number of particles
 D = 0.1  # diffusivity
+phi = np.zeros(N)
+
+#initial conditions
+#1: 1D problem
+#2: middle patch
+#3: side patch
+init_type = 3
 
 # Domain size
 x_min = -1
@@ -33,8 +40,31 @@ y_max = 1
 x = np.random.uniform(x_min, x_max, size=N)
 y = np.random.uniform(y_min, y_max, size=N)
 
-x_i = np.copy(x)
-y_i = np.copy(y)
+#color list with same length as the data
+col=[]
+
+if init_type == 2:
+    for i in range(N):
+        if np.sqrt(x[i] ** 2 + y[i] ** 2) < 0.3:
+            phi[i] = 1
+        else:
+            phi[i] = 0
+if init_type == 3:
+    for i in range(N):
+        if x[i] < 0:
+            phi[i] = 1
+        else:
+            phi[i] = 0
+
+for i in range(N):
+    if phi[i] == 1:
+        col.append('b')
+    if phi[i] == 0:
+        col.append('r')
+
+for i in range (N):
+    plt.scatter(x[i], y[i], color = col[i])
+plt.show()
 
 def get_velocities(x, y):
     x_coordinates = np.round((x - np.amin(x)) / (np.amax(x) - np.amin(x)) * (row_length - 1)).astype(int)
@@ -47,7 +77,7 @@ def get_velocities(x, y):
         y_velocities[i] = velocities[velocity_index][1]
     return x_velocities, y_velocities
 
-def lagrange(time, x, y, points, fig):
+for i in np.arange(0, t_max, dt):
     v_x, v_y = get_velocities(x, y)
     x += v_x * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=(N,)) #Lagrange Diffusion
     y += v_y * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=(N,)) #Lagrange Diffusion
@@ -61,19 +91,7 @@ def lagrange(time, x, y, points, fig):
         elif y[i] < y_min:
             y[i] = 2 * y_min - y[i]
 
-    fig.suptitle("Frame: " + str(time), fontsize=20)
-    points.set_data(x, y)
-    return points
-
-
-fig = plt.figure()
-ax = plt.axes()
-ax.axis('scaled')
-ax.set_xlim(-1, 1)
-ax.set_ylim(-1, 1)
-points, = ax.plot(x, y, 'o', markersize= 0.5)
-fig.suptitle("Frame: ", fontsize=20)
-
-anim = animation.FuncAnimation(fig, lagrange, fargs=(x, y, points, fig), frames=1000000, repeat=False, interval=1)
+for i in range (N):
+    plt.scatter(x[i], y[i], color = col[i])
 
 plt.show()
