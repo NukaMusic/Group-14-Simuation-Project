@@ -31,8 +31,8 @@ t_max = 0.4  # simulation time in seconds
 dt = 0.0005  # step size
 N = 2 ** 16  # Number of particles
 D = 0.01  # diffusivity
-Nx = 65  # Euler grid size x
-Ny = 65  # Euler grid size y
+Nx = 2  # Euler grid size x
+Ny = 2  # Euler grid size y
 
 x = np.random.uniform(x_min, x_max, size=N)
 y = np.random.uniform(y_min, y_max, size=N)
@@ -65,7 +65,7 @@ def getavrphimesh(x, y):
     grancoord = np.column_stack((x_gran, y_gran))
     unq, ids, count = np.unique(grancoord, return_inverse=True, return_counts=True, axis=0)
     avrphi = np.bincount(ids, phi)/count
-    avrphi = np.delete(avrphi, [-1, -2])
+    avrphi = np.delete(avrphi, [0, 1])
     avrphi = np.reshape(avrphi, [Nx, Ny])
     avrphi = np.rot90(avrphi, 1)
     return avrphi
