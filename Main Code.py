@@ -91,20 +91,7 @@ def get_velocities(x, y):
     x_velocities = np.empty(shape=N)
     y_velocities = np.empty(shape=N)
     for i in range(N):
-        velocity_index = y_coordinates[i] + x_coordinates[i] * row_length
-        x_velocities[i] = vel[velocity_index][0]
-        y_velocities[i] = vel[velocity_index][1]
-    return x_velocities, y_velocities
-
-print(time.time() - starttime)
-
-for i in np.arange(0, t_max, dt):
-    v_x, v_y = get_velocities(x, y)
-    x += v_x * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N) #Lagrange Diffusion and advection
-    y += v_y * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N) #Lagrange Diffusion and advection
-    #Walls
-    x = np.where(x > x_max, 2 * x_max - x, x)
-    x = np.where(x < x_min, 2 * x_min - x, x)
+    - x, x)
     y = np.where(y > y_max, 2 * y_max - y, y)
     y = np.where(y < y_min, 2 * y_min - y, y)
 
