@@ -1,10 +1,12 @@
 re-implementing plotting actual dots, not concentration field
 1D problem
 Fix concentration field to show correct locations 
-(relationship between minimum amount of points and maximum concentration grid size?)
+  sub prio. (figure out relationship between minimum amount of points and maximum concentration grid size?)
 Pretty up plots with titles etc.
 Create import file and import it
-  (Possibly other more fancy GUI if time is found)
+  sub prio. (Possibly other more fancy GUI if time is found)
 Add error analysis (All of task B)
 Perform Engineering simulation once full code is done
-(Possibly animate again for the lulz)
+  sub prio. (Possibly animate again for the lulz)
+
+  sub prio. Make rectangular data files importable
