@@ -15,9 +15,7 @@ starttime = time.time()
 
 print(time.time() - starttime)
 
-database_file = 'velocityCMM3.dat' """import file object
-velocity field must have same minimum and maximum bounds
-#or the grid will stretch"""
+database_file = 'velocityCMM3.dat' #import file object velocity field must have same minimum and maximum bounds or the grid will stretch
 
 pos = np.genfromtxt(database_file, usecols=(0, 1)) #position array
 vel = np.genfromtxt(database_file, usecols=(2, 3)) #velocity array
@@ -34,8 +32,8 @@ t_max = 0.4  # simulation time in seconds
 dt = 0.0005  # step size
 N = 2 ** 16  # Number of particles
 D = 0.01  # diffusivity
-Nx = 2  # Euler grid size x
-Ny = 2  # Euler grid size y
+Nx = 64  # Euler grid size x
+Ny = 64  # Euler grid size y
 
 x = np.random.uniform(x_min, x_max, size=N) #init x-positions
 y = np.random.uniform(y_min, y_max, size=N) #init y-positions
@@ -52,7 +50,7 @@ cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', ['r', 'lime',
 # 1: 1D problem
 # 2: middle patch
 # 3: side patch
-init_type = 2
+init_type = 3
 
 if init_type == 2:
     phi = np.where(np.sqrt(x ** 2 + y ** 2) < 0.3, phi1, phi0)
@@ -67,18 +65,11 @@ def getavrphimesh(x, y):
     y_gran = np.floor((y - np.amin(y)) / (np.amax(y) - np.amin(y)) * Ny).astype(int) #coordinate) each point fits into
     grancoord = np.column_stack((x_gran, y_gran)) #array of each point's granular coordinate
     unq, ids, count = np.unique(grancoord, return_inverse=True, return_counts=True, axis=0)
-<<<<<<< Updated upstream
     avrphi = np.bincount(ids, phi)/count
     avrphi = np.delete(avrphi, [0, 1])
     avrphi = np.reshape(avrphi, [Nx, Ny])
     return avrphi
-=======
-    avrphi = np.bincount(ids, phi)/count #get average concentration (phi) of each granular coordinate
-    avrphi = np.delete(avrphi, [-1, -2]) #bug fix
-    avrphi = np.reshape(avrphi, [Nx, Ny]) #reshape 1D avrphi array into 2D
-    avrphi = np.rot90(avrphi, 1) #rotate the reshaped array (clunky)
-    return avrphi 
->>>>>>> Stashed changes
+
 
 
 avphi = getavrphimesh(x, y)
