@@ -1,2 +1,1 @@
-importing advection data from .dat file
-random creation of data points given specification of Nx and Ny points
+Plotting actual dots, not concentration field
