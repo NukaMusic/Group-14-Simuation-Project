@@ -48,7 +48,7 @@ cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', ['r', 'lime',
 # 1: 1D problem
 # 2: middle patch
 # 3: side patch
-init_type = 3
+init_type = 2
 
 if init_type == 2:
     phi = np.where(np.sqrt(x ** 2 + y ** 2) < 0.3, phi1, phi0)
@@ -56,7 +56,6 @@ if init_type == 2:
 if init_type == 3:
     phi = np.where(x < 0, phi1, phi0)
 
-print(time.time() - starttime)
 
 # create a mesh and find the average phi values within it
 def getavrphimesh(x, y):
@@ -67,7 +66,6 @@ def getavrphimesh(x, y):
     avrphi = np.bincount(ids, phi)/count
     avrphi = np.delete(avrphi, [0, 1])
     avrphi = np.reshape(avrphi, [Nx, Ny])
-    avrphi = np.rot90(avrphi, 1)
     return avrphi
 
 
