@@ -1,6 +1,5 @@
 re-implementing plotting actual dots, not concentration field
 1D problem
-Fix concentration field to show correct locations 
   sub prio. (figure out relationship between minimum amount of points and maximum concentration grid size?)
 Pretty up plots with titles etc.
 Create import file and import it
