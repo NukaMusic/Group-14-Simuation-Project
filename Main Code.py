@@ -9,18 +9,18 @@ Conor Shannon
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import time #for debugging and optimization
+import time  # for debugging and optimization
 
 starttime = time.time()
 
 print(time.time() - starttime)
 
-database_file = 'velocityCMM3.dat' #import file object velocity field must have same minimum and maximum bounds or the grid will stretch
+database_file = 'velocityCMM3.dat'  # import file object velocity field must have same minimum and maximum bounds or the grid will stretch
 
-pos = np.genfromtxt(database_file, usecols=(0, 1)) #position array
-vel = np.genfromtxt(database_file, usecols=(2, 3)) #velocity array
+pos = np.genfromtxt(database_file, usecols=(0, 1))  # position array
+vel = np.genfromtxt(database_file, usecols=(2, 3))  # velocity array
 row_length = np.sqrt(len(pos)).astype(int) 
-column_length = row_length #currently assumes square
+column_length = row_length  # currently assumes square
 
 # Domain size
 x_min = -1
@@ -35,9 +35,9 @@ D = 0.01  # diffusivity
 Nx = 64  # Euler grid size x
 Ny = 64  # Euler grid size y
 
-x = np.random.uniform(x_min, x_max, size=N) #init x-positions
-y = np.random.uniform(y_min, y_max, size=N) #init y-positions
-velocities = np.empty(shape=(row_length * column_length, 2)) #create empty velocity array
+x = np.random.uniform(x_min, x_max, size=N)  # init x-positions
+y = np.random.uniform(y_min, y_max, size=N)  # init y-positions
+velocities = np.empty(shape=(row_length * column_length, 2))  # create empty velocity array
 
 phi1 = np.ones(N)  # Array of ones for where function
 phi0 = np.zeros(N)  # Array of zeros for where function
@@ -65,9 +65,9 @@ if init_type == 3:
 
 # create a mesh and find the average phi values within it
 def getavrphimesh(x, y):
-    x_gran = np.floor((x - np.amin(x)) / (np.amax(x) - np.amin(x)) * Nx).astype(int) #figures out which grid square (granular
-    y_gran = np.floor((y - np.amin(y)) / (np.amax(y) - np.amin(y)) * Ny).astype(int) #coordinate) each point fits into
-    grancoord = np.column_stack((x_gran, y_gran)) #array of each point's granular coordinate
+    x_gran = np.floor((x - np.amin(x)) / (np.amax(x) - np.amin(x)) * Nx).astype(int)  # figures out which grid square (granular
+    y_gran = np.floor((y - np.amin(y)) / (np.amax(y) - np.amin(y)) * Ny).astype(int)  # coordinate) each point fits into
+    grancoord = np.column_stack((x_gran, y_gran))  # array of each point's granular coordinate
     unq, ids, count = np.unique(grancoord, return_inverse=True, return_counts=True, axis=0)
     avrphi = np.bincount(ids, phi)/count
     avrphi = np.delete(avrphi, [0, 1])
@@ -79,14 +79,14 @@ def getavrphimesh(x, y):
 
 if graph_type == 1:
     for i in range(N):
-        col = np.where(phi == 1, blue, red) #create array of colours for each point
+        col = np.where(phi == 1, blue, red)  # create array of colours for each point
     plt.scatter(x, y, color=col, s=0.1)
     plt.show()
 
 
 if graph_type == 2:
     avphi = getavrphimesh(x, y)
-    plt.imshow(avphi, interpolation='nearest', cmap=cmap, origin='lower', extent=(x_min, x_max, y_min, y_max))# interpolate = ?, cmap = colour map, origin = 'Lower' -> (0,0) at bottom left, extent changes graph size
+    plt.imshow(avphi, interpolation='nearest', cmap=cmap, origin='lower', extent=(x_min, x_max, y_min, y_max))  # interpolate = ?, cmap = colour map, origin = 'Lower' -> (0,0) at bottom left, extent changes graph size
     plt.colorbar()  # colour map legend
     plt.show()  # plot it!
 
@@ -94,12 +94,12 @@ if graph_type == 2:
 print(time.time() - starttime)
 
 
-def get_velocities(x, y): #given a coordinate, tells us what nearest velocity vector is
-    x_coordinates = np.floor((x - np.amin(x)) / (np.amax(x) - np.amin(x)) * (row_length-1)).astype(int) #same indexing
-    y_coordinates = np.floor((y - np.amin(y)) / (np.amax(y) - np.amin(y)) * (row_length-1)).astype(int) #as avrphi function
-    x_velocities = np.empty(shape=N) #empty arrays to receive velocity data
+def get_velocities(x, y): # given a coordinate, tells us what nearest velocity vector is
+    x_coordinates = np.floor((x - np.amin(x)) / (np.amax(x) - np.amin(x)) * (row_length-1)).astype(int)  # same indexing
+    y_coordinates = np.floor((y - np.amin(y)) / (np.amax(y) - np.amin(y)) * (row_length-1)).astype(int)  # as avrphi function
+    x_velocities = np.empty(shape=N) # empty arrays to receive velocity data
     y_velocities = np.empty(shape=N)
-    for i in range(N): #turns our two vel arrays into a 1D array
+    for i in range(N): # turns our two vel arrays into a 1D array
         velocity_index = y_coordinates[i] + x_coordinates[i] * row_length
         x_velocities[i] = vel[velocity_index][0]
         y_velocities[i] = vel[velocity_index][1]
@@ -109,12 +109,12 @@ print(time.time() - starttime)
 
 for i in np.arange(0, (t_max+dt), dt): 
     v_x, v_y = get_velocities(x, y)
-    x += v_x * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N) #Lagrange Diffusion and advection
-    y += v_y * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N) #Lagrange Diffusion and advection
+    x += v_x * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N)  # Lagrange Diffusion and advection
+    y += v_y * dt + np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N)  # Lagrange Diffusion and advection
     #Walls
-    x = np.where(x > x_max, 2 * x_max - x, x) #if point is beyond wall, update 
-    x = np.where(x < x_min, 2 * x_min - x, x) #position to bounce off wall as
-    y = np.where(y > y_max, 2 * y_max - y, y) #far as it went beyond the wall
+    x = np.where(x > x_max, 2 * x_max - x, x)  # if point is beyond wall, update
+    x = np.where(x < x_min, 2 * x_min - x, x)  # position to bounce off wall as
+    y = np.where(y > y_max, 2 * y_max - y, y)  # far as it went beyond the wall
     y = np.where(y < y_min, 2 * y_min - y, y)
 
 print(time.time() - starttime)
@@ -125,7 +125,7 @@ if graph_type == 1:
 
 if graph_type == 2:
     avphi = getavrphimesh(x, y)
-    plt.imshow(avphi, interpolation='nearest', cmap=cmap, origin='lower', extent=(x_min, x_max, y_min, y_max))# interpolate = ?,
+    plt.imshow(avphi, interpolation='nearest', cmap=cmap, origin='lower', extent=(x_min, x_max, y_min, y_max))  # interpolate = ?,
     plt.colorbar()  # colour map legend
     plt.show()  # plot it!
 
