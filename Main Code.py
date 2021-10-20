@@ -30,10 +30,10 @@ y_max = 1
 
 t_max = 0.08  # simulation time in seconds
 dt = 0.0005  # step size
-N = 2 ** 16  # Number of particles
+N = 2 ** 21  # Number of particles
 D = 0.01  # diffusivity
-Nx = 64  # Euler grid size x
-Ny = 64  # Euler grid size y
+Nx = 256  # Euler grid size x
+Ny = 256  # Euler grid size y
 
 x = np.random.uniform(x_min, x_max, size=N)  # init x-positions
 y = np.random.uniform(y_min, y_max, size=N)  # init y-positions
@@ -65,15 +65,12 @@ if init_type == 3:
 
 # create a mesh and find the average phi values within it
 def getavrphimesh(x, y):
-    x_gran = np.floor((x - np.amin(x)) / (np.amax(x) - np.amin(x)) * Nx).astype(int)  # figures out which grid square (granular
-    y_gran = np.floor((y - np.amin(y)) / (np.amax(y) - np.amin(y)) * Ny).astype(int)  # coordinate) each point fits into
+    x_gran = np.round((x - x_min) / (x_max - x_min) * (Nx-1)).astype(int)  # figures out which grid square (granular
+    y_gran = np.round((y - y_min) / (y_max - y_min) * (Ny-1)).astype(int)  # coordinate) each point fits into
     grancoord = np.column_stack((x_gran, y_gran))  # array of each point's granular coordinate
     unq, ids, count = np.unique(grancoord, return_inverse=True, return_counts=True, axis=0)
     avrphi = np.bincount(ids, phi)/count
-    avrphi = np.delete(avrphi, [0, 1])
-    avrphi = np.reshape(avrphi, [Nx, Ny])
-    avrphi = np.rot90(avrphi)
-    avrphi = np.flipud(avrphi)
+    avrphi = np.flipud(np.rot90(np.reshape(avrphi, [Nx, Ny])))
     return avrphi
 
 
@@ -90,13 +87,11 @@ if graph_type == 2:
     plt.colorbar()  # colour map legend
     plt.show()  # plot it!
 
-
 print(time.time() - starttime)
 
-
 def get_velocities(x, y): # given a coordinate, tells us what nearest velocity vector is
-    x_coordinates = np.floor((x - np.amin(x)) / (np.amax(x) - np.amin(x)) * (row_length-1)).astype(int)  # same indexing
-    y_coordinates = np.floor((y - np.amin(y)) / (np.amax(y) - np.amin(y)) * (row_length-1)).astype(int)  # as avrphi function
+    x_coordinates = np.round((x - np.amin(x)) / (np.amax(x) - np.amin(x)) * (row_length-1)).astype(int)  # same indexing
+    y_coordinates = np.round((y - np.amin(y)) / (np.amax(y) - np.amin(y)) * (row_length-1)).astype(int)  # as avrphi function
     x_velocities = np.empty(shape=N) # empty arrays to receive velocity data
     y_velocities = np.empty(shape=N)
     for i in range(N): # turns our two vel arrays into a 1D array
@@ -105,7 +100,9 @@ def get_velocities(x, y): # given a coordinate, tells us what nearest velocity v
         y_velocities[i] = vel[velocity_index][1]
     return x_velocities, y_velocities 
 
+
 print(time.time() - starttime)
+
 
 for i in np.arange(0, (t_max+dt), dt): 
     v_x, v_y = get_velocities(x, y)
