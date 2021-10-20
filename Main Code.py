@@ -28,7 +28,7 @@ x_max = 1
 y_min = -1
 y_max = 1
 
-t_max = 0.4  # simulation time in seconds
+t_max = 0.08  # simulation time in seconds
 dt = 0.0005  # step size
 N = 2 ** 16  # Number of particles
 D = 0.01  # diffusivity
@@ -37,13 +37,12 @@ Ny = 64  # Euler grid size y
 
 x = np.random.uniform(x_min, x_max, size=N) #init x-positions
 y = np.random.uniform(y_min, y_max, size=N) #init y-positions
-velocities = np.empty(shape=(row_length * column_length, 2)) 
-#create empty velocity array
+velocities = np.empty(shape=(row_length * column_length, 2)) #create empty velocity array
 
 phi1 = np.ones(N)  # Array of ones for where function
 phi0 = np.zeros(N)  # Array of zeros for where function
-# blue = np.full(N, 'b')  # Array of blue for where function
-# red = np.full(N, 'r')  # Array of red for where function
+blue = np.full(N, 'b')  # Array of blue for where function
+red = np.full(N, 'r')  # Array of red for where function
 cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', ['r', 'lime', 'b'], 256)  # colormap for graphing
 
 # initial conditions
@@ -51,6 +50,11 @@ cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', ['r', 'lime',
 # 2: middle patch
 # 3: side patch
 init_type = 3
+
+# Graphing type
+# 1: Particles
+# 2: Concentation field
+graph_type = 2
 
 if init_type == 2:
     phi = np.where(np.sqrt(x ** 2 + y ** 2) < 0.3, phi1, phi0)
@@ -68,23 +72,26 @@ def getavrphimesh(x, y):
     avrphi = np.bincount(ids, phi)/count
     avrphi = np.delete(avrphi, [0, 1])
     avrphi = np.reshape(avrphi, [Nx, Ny])
+    avrphi = np.rot90(avrphi)
+    avrphi = np.flipud(avrphi)
     return avrphi
 
 
+if graph_type == 1:
+    for i in range(N):
+        col = np.where(phi == 1, blue, red) #create array of colours for each point
+    plt.scatter(x, y, color=col, s=0.1)
+    plt.show()
 
-avphi = getavrphimesh(x, y)
 
-# for i in range(N):
-#     col = np.where(phi == 1, blue, red) #create array of colours for each point
+if graph_type == 2:
+    avphi = getavrphimesh(x, y)
+    plt.imshow(avphi, interpolation='nearest', cmap=cmap, origin='lower', extent=(x_min, x_max, y_min, y_max))# interpolate = ?, cmap = colour map, origin = 'Lower' -> (0,0) at bottom left, extent changes graph size
+    plt.colorbar()  # colour map legend
+    plt.show()  # plot it!
+
 
 print(time.time() - starttime)
-
-# plt.scatter(x, y, color=col, s=0.1)
-
-plt.imshow(avphi, interpolation='nearest', cmap=cmap, origin='lower', extent=(x_min, x_max, y_min, y_max))
-#interpolate = ?, cmap = colour map, origin = 'Lower' -> (0,0) at bottom left, extent changes graph size
-plt.colorbar() #colour map legend
-plt.show() #plot it!
 
 
 def get_velocities(x, y): #given a coordinate, tells us what nearest velocity vector is
@@ -112,11 +119,14 @@ for i in np.arange(0, (t_max+dt), dt):
 
 print(time.time() - starttime)
 
-avphi = getavrphimesh(x, y) #same plot business as above
-plt.imshow(avphi, interpolation='nearest', cmap=cmap, origin='lower', extent=(x_min, x_max, y_min, y_max))
-plt.colorbar()
-plt.show()
+if graph_type == 1:
+    plt.scatter(x, y, color=col, s=0.1)
+    plt.show()
 
-# plt.scatter(x, y, color=col, s=0.1)
+if graph_type == 2:
+    avphi = getavrphimesh(x, y)
+    plt.imshow(avphi, interpolation='nearest', cmap=cmap, origin='lower', extent=(x_min, x_max, y_min, y_max))# interpolate = ?,
+    plt.colorbar()  # colour map legend
+    plt.show()  # plot it!
 
 print(time.time() - starttime)
