@@ -14,7 +14,7 @@ y_max = 1
 
 t_max = 0.08  # simulation time in seconds
 dt = 0.0005  # step size
-N = 2 ** 16  # Number of particles
+N = 2 ** 17  # Number of particles
 D = 0.01  # diffusivity
 Nx = 64  # Euler grid size x
 Ny = 64  # Euler grid size y

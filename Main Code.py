@@ -7,6 +7,7 @@ Conor Shannon
 """
 
 import numpy as np
+from scipy import spatial
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import time  # for debugging and optimization
@@ -21,9 +22,8 @@ vel = np.genfromtxt(vel_file, usecols=(2, 3))  # velocity array
 row_length = np.sqrt(len(pos)).astype(int)
 column_length = row_length  # currently assumes square
 
-x = np.random.uniform(x_min, x_max, size=N)  # init x-positions
-y = np.random.uniform(y_min, y_max, size=N)  # init y-positions
-velocities = np.empty(shape=(row_length * column_length, 2))  # create empty velocity array
+x = np.random.uniform(x_min, x_max, size=N)  # initial x-positions
+y = np.random.uniform(y_min, y_max, size=N)  # initial y-positions
 
 phi1 = np.ones(N)  # Array of ones for where function
 phi0 = np.zeros(N)  # Array of zeros for where function
@@ -47,6 +47,12 @@ def getavrphimesh(x, y):
     avrphi = np.rot90(np.reshape(avrphi, [Nx, Ny]))
     return avrphi
 
+def get_velocities(x, y):  # given a coordinate, tells us what nearest velocity vector is
+    distance, index = spatial.cKDTree(pos).query(np.column_stack((x, y)))
+    x_velocities = vel[index][:, 0]
+    y_velocities = vel[index][:, 1]
+    return x_velocities, y_velocities
+
 
 # Visualize the data
 def visualize(viz_type):
@@ -68,22 +74,7 @@ visualize(viz_type)
 
 print(time.time() - starttime)
 
-
-def get_velocities(x, y):  # given a coordinate, tells us what nearest velocity vector is
-    x_coordinates = np.round((x - np.amin(x)) / (np.amax(x) - np.amin(x)) * (row_length-1)).astype(int)  # same indexing
-    y_coordinates = np.round((y - np.amin(y)) / (np.amax(y) - np.amin(y)) * (row_length-1)).astype(int)  # as avrphi function
-    x_velocities = np.empty(shape=N)  # empty arrays to receive velocity data
-    y_velocities = np.empty(shape=N)
-    for i in range(N): # turns our two vel arrays into a 1D array
-        velocity_index = y_coordinates[i] + x_coordinates[i] * row_length
-        x_velocities[i] = vel[velocity_index][0]
-        y_velocities[i] = vel[velocity_index][1]
-    return x_velocities, y_velocities
-
-
-print(time.time() - starttime)
-
-for i in np.arange(0, (t_max+dt), dt): 
+for i in np.arange(0, (t_max+dt), dt):
     if vel_type == 1:
         v_x, v_y = get_velocities(x, y)
         x += v_x * dt
