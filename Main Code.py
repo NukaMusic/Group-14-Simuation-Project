@@ -48,7 +48,7 @@ def getavrphimesh(x, y):
     return avrphi
 
 def get_velocities(x, y):  # given a coordinate, tells us what nearest velocity vector is
-    distance, index = spatial.cKDTree(pos).query(np.column_stack((x, y)))
+    distance, index = spatial.cKDTree(pos).query(np.column_stack((x, y)), workers=-1)
     x_velocities = vel[index][:, 0]
     y_velocities = vel[index][:, 1]
     return x_velocities, y_velocities

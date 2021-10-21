@@ -12,7 +12,7 @@ x_max = 1
 y_min = -1
 y_max = 1
 
-t_max = 0.08  # simulation time in seconds
+t_max = 0.1  # simulation time in seconds
 dt = 0.0005  # step size
 N = 2 ** 17  # Number of particles
 D = 0.01  # diffusivity
