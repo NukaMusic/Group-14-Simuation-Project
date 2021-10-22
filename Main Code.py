@@ -17,25 +17,29 @@ starttime = time.time()
 
 print(time.time() - starttime)
 
-pos = np.genfromtxt(vel_file, usecols=(0, 1))  # position array
-vel = np.genfromtxt(vel_file, usecols=(2, 3))  # velocity array
-row_length = np.sqrt(len(pos)).astype(int)
-column_length = row_length  # currently assumes square
-
 x = np.random.uniform(x_min, x_max, size=N)  # initial x-positions
 y = np.random.uniform(y_min, y_max, size=N)  # initial y-positions
+pos = np.genfromtxt(vel_file, usecols=(0, 1))  # position array for velocity field
+vel = np.genfromtxt(vel_file, usecols=(2, 3))  # velocity array for velocity field
 
-phi1 = np.ones(N)  # Array of ones for where function
-phi0 = np.zeros(N)  # Array of zeros for where function
+ones = np.ones(N)  # Array of ones for where function
+zeros = np.zeros(N)  # Array of zeros for where function
 blue = np.full(N, 'b')  # Array of blue for where function
 red = np.full(N, 'r')  # Array of red for where function
 cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', ['r', 'lime', 'b'], 256)  # colormap for graphing
 
 if init_type == 2:
-    phi = np.where(np.sqrt(x ** 2 + y ** 2) < 0.3, phi1, phi0)
+    phi = np.where(np.sqrt(x ** 2 + y ** 2) < 0.3, ones, zeros)
 
 if init_type == 3:
-    phi = np.where(x < 0, phi1, phi0)
+    phi = np.where(x < 0, ones, zeros)
+
+# Velocity data position resolution (distance between velocity field points
+x_posres = (np.max(pos[:, 0]) - np.min(pos[:, 0])) / (len(np.unique(pos[:, 0]).astype(int)) - 1)
+y_posres = (np.max(pos[:, 1]) - np.min(pos[:, 1])) / (len(np.unique(pos[:, 1]).astype(int)) - 1)
+
+maxdist = np.sqrt(x_posres ** 2 + y_posres ** 2)  # maximum allowable distance for a particle to be from a vel coord
+
 
 # Create a mesh and find the average phi values within it
 def getavrphimesh(x, y):
@@ -47,10 +51,13 @@ def getavrphimesh(x, y):
     avrphi = np.rot90(np.reshape(avrphi, [Nx, Ny]))
     return avrphi
 
+
 def get_velocities(x, y):  # given a coordinate, tells us what nearest velocity vector is
     distance, index = spatial.cKDTree(pos).query(np.column_stack((x, y)), workers=-1)
     x_velocities = vel[index][:, 0]
     y_velocities = vel[index][:, 1]
+    x_velocities = np.where(distance > maxdist, zeros, x_velocities)
+    y_velocities = np.where(distance > maxdist, zeros, y_velocities)
     return x_velocities, y_velocities
 
 
