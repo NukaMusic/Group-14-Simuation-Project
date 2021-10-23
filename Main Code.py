@@ -28,6 +28,15 @@ blue = np.full(N, 'b')  # Array of blue for where function
 red = np.full(N, 'r')  # Array of red for where function
 cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', ['r', 'lime', 'b'], 256)  # colormap for graphing
 
+oneD_ref = np.genfromtxt('reference_solution_1D.dat')
+
+if init_type == 1:
+    phi = np.where(x <= 0, ones, zeros)
+    y_min = -0.001
+    y_max = 0.001
+    Ny = 1
+    vel_type = 0
+
 if init_type == 2:
     phi = np.where(np.sqrt(x ** 2 + y ** 2) < 0.3, ones, zeros)
 
@@ -62,22 +71,29 @@ def get_velocities(x, y):  # given a coordinate, tells us what nearest velocity 
 
 
 # Visualize the data
-def visualize(viz_type):
-    if viz_type == 1:
-        for i in range(N):
-            col = np.where(phi == 1, blue, red)  # create array of colours for each point
-        plt.scatter(x, y, color=col, s=0.1)
-        plt.show()
-
-    if viz_type == 2:
+def visualize(init_type, viz_type):
+    if init_type == 1:
         avphi = getavrphimesh(x, y)
-        plt.imshow(avphi, interpolation='nearest', cmap=cmap,
-                   extent=(x_min, x_max, y_min, y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
-        plt.colorbar()  # colour map legend
-        plt.show()  # plot it!
+        plt.scatter(np.linspace(x_min, x_max, Nx), avphi[0], s=0.5)
+        plt.plot(oneD_ref[:, 0], oneD_ref[:, 1])
+        plt.show()
+    if init_type == 2 or init_type == 3:
+        if viz_type == 1:
+            for i in range(N):
+                col = np.where(phi == 1, blue, red)  # create array of colours for each point
+            plt.scatter(x, y, color=col, s=0.1)
+            plt.show()
+
+        if viz_type == 2:
+            avphi = getavrphimesh(x, y)
+            plt.imshow(avphi, interpolation='nearest', cmap=cmap,
+                       extent=(x_min, x_max, y_min, y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
+            plt.colorbar()  # colour map legend
+            plt.show()  # plot it!
 
 
-visualize(viz_type)
+if init_type == 2 or init_type == 3:
+    visualize(init_type, viz_type)
 
 print(time.time() - starttime)
 
@@ -94,6 +110,6 @@ for i in np.arange(0, (t_max+dt), dt):
     y = np.where(y > y_max, 2 * y_max - y, y)  # far as it went beyond the wall
     y = np.where(y < y_min, 2 * y_min - y, y)
 
-visualize(viz_type)
+visualize(init_type, viz_type)
 
 print(time.time() - starttime)
