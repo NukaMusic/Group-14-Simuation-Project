@@ -1,4 +1,3 @@
-1D problem
   sub prio. (figure out relationship between minimum amount of points and maximum concentration grid size?)
 Pretty up plots with titles etc.
 Done, but maybe JSON instead? (Create import file and import it)
@@ -6,5 +5,3 @@ Done, but maybe JSON instead? (Create import file and import it)
 Add error analysis (All of task B)
 Perform Engineering simulation once full code is done
   sub prio. (Possibly animate again for the lulz)
-
-  sub prio. Make rectangular data files importable
