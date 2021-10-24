@@ -11,8 +11,8 @@ t_max = 0.2 # simulation time in seconds
 dt = 0.0005  # step size
 N = 2 ** 12  # Number of particles
 D = 0.1  # diffusivity
-Nx = 65  # Euler grid size x
-Ny = 65  # Euler grid size y
+Nx = 16  # Euler grid size x
+Ny = 16  # Euler grid size y
 
 # Velocity field file name
 # Note: import file object velocity field must have same minimum and maximum bounds or the velocity field will stretch
