@@ -9,10 +9,10 @@ y_max = 1
 
 t_max = 0.2 # simulation time in seconds
 dt = 0.0005  # step size
-N = 2 ** 18  # Number of particles
+N = 2 ** 12  # Number of particles
 D = 0.1  # diffusivity
-Nx = 64  # Euler grid size x
-Ny = 64  # Euler grid size y
+Nx = 65  # Euler grid size x
+Ny = 65  # Euler grid size y
 
 # Velocity field file name
 # Note: import file object velocity field must have same minimum and maximum bounds or the velocity field will stretch
@@ -22,7 +22,7 @@ vel_file = 'velocityCMM3.dat'
 # 1: 1D problem (overrides y_min, y_max, Ny, and vel_type)
 # 2: middle patch
 # 3: side patch
-init_type = 1
+init_type = 2
 
 # Visualization type
 # 1: Particles
