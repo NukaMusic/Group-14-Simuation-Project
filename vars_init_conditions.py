@@ -22,7 +22,7 @@ vel_file = 'velocityCMM3.dat'
 # 1: 1D problem (overrides y_min, y_max, Ny, and vel_type)
 # 2: middle patch
 # 3: side patch
-init_type = 3
+init_type = 1
 
 # Visualization type
 # 1: Particles
