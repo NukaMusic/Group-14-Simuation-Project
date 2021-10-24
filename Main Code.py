@@ -76,7 +76,7 @@ def visualize(init_type, viz_type):
         avphi = getavrphimesh(x, y)
         plt.scatter(np.linspace(x_min, x_max, Nx), avphi[0], s=0.5)
         plt.plot(oneD_ref[:, 0], oneD_ref[:, 1])
-        plt.title('1D Particle Distribution at '+str(t)+' s', fontdict=None, loc='center', pad=None) #Plot Titles
+        plt.title('1D Particle Distribution', fontdict=None, loc='center', pad=None) #Plot Titles
         plt.show()
     if init_type == 2 or init_type == 3:
         if viz_type == 1:
