@@ -94,9 +94,8 @@ def visualize(init_type, viz_type):
             plt.title('2D Particle Concentration Representation at '+str(t)+' s', fontdict=None, loc='center', pad=None) #Plot Titles
             plt.show()  # plot it!
 
-
+t=0 #initialises t for first title
 if init_type == 2 or init_type == 3:
-    t=0 #initialises t for first title
     visualize(init_type, viz_type)
 
 print(time.time() - starttime)
