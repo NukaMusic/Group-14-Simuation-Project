@@ -96,7 +96,7 @@ def visualize(init_type, viz_type):
 
 
 if init_type == 2 or init_type == 3:
-    t=0 #initialises t for title
+    t=0 #initialises t for first title
     visualize(init_type, viz_type)
 
 print(time.time() - starttime)
@@ -113,7 +113,7 @@ for i in np.arange(0, (t_max+dt), dt):
     x = np.where(x < x_min, 2 * x_min - x, x)  # position to bounce off wall as
     y = np.where(y > y_max, 2 * y_max - y, y)  # far as it went beyond the wall
     y = np.where(y < y_min, 2 * y_min - y, y)
-    t=t_max
+    t=t_max #t for second title
 
 visualize(init_type, viz_type)
 
