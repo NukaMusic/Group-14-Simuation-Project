@@ -72,27 +72,31 @@ def get_velocities(x, y):  # given a coordinate, tells us what nearest velocity 
 
 # Visualize the data
 def visualize(init_type, viz_type):
-    if init_type == 1:
-        avphi = getavrphimesh(x, y)
-        plt.scatter(np.linspace(x_min, x_max, Nx), avphi[0], s=0.5)
-        plt.plot(oneD_ref[:, 0], oneD_ref[:, 1])
-        plt.title('1D Particle Distribution', fontdict=None, loc='center', pad=None) #Plot Titles
-        plt.show()
-    if init_type == 2 or init_type == 3:
-        if viz_type == 1:
-            for i in range(N):
-                col = np.where(phi == 1, blue, red)  # create array of colours for each point
-            plt.scatter(x, y, color=col, s=0.1)
-            plt.title('2D Particle Location Visualisation', fontdict=None, loc='center', pad=None) #Plot Titles
-            plt.show()
-
-        if viz_type == 2:
+    t=0
+    while (t <= t_max) :
+        if init_type == 1:
             avphi = getavrphimesh(x, y)
-            plt.imshow(avphi, interpolation='nearest', cmap=cmap,
-                       extent=(x_min, x_max, y_min, y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
-            plt.colorbar(label='Concentration')  # colour map legend
-            plt.title('2D Particle Concentration Representation', fontdict=None, loc='center', pad=None) #Plot Titles
-            plt.show()  # plot it!
+            plt.scatter(np.linspace(x_min, x_max, Nx), avphi[0], s=0.5)
+            plt.plot(oneD_ref[:, 0], oneD_ref[:, 1])
+            plt.title('1D Particle Distribution at '+str(t)+' s', fontdict=None, loc='center', pad=None) #Plot Titles
+            plt.show()
+            if init_type == 2 or init_type == 3:
+                if viz_type == 1:
+                    for i in range(N):
+                        col = np.where(phi == 1, blue, red)  # create array of colours for each point
+                        plt.scatter(x, y, color=col, s=0.1)
+                        plt.title('2D Particle Location Visualisation at '+str(t)+' s', fontdict=None, loc='center', pad=None) #Plot Titles
+                        plt.show()
+
+            if viz_type == 2:
+                avphi = getavrphimesh(x, y)
+                plt.imshow(avphi, interpolation='nearest', cmap=cmap,
+                           extent=(x_min, x_max, y_min, y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
+                plt.colorbar(label='Concentration')  # colour map legend
+                plt.title('2D Particle Concentration Representation at '+str(t)+' s', fontdict=None, loc='center', pad=None) #Plot Titles
+                plt.show()  # plot it!
+           
+        t+=t_max
 
 
 if init_type == 2 or init_type == 3:

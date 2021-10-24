@@ -27,7 +27,7 @@ init_type = 2
 # Visualization type
 # 1: Particles
 # 2: Concentration field
-viz_type = 2
+viz_type = 1
 
 # velocity
 # 0: No velocity field
