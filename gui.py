@@ -45,7 +45,7 @@ with dpg.window(label="Parameters", width=800):
     dpg.add_input_int(tag="init_type", default_value=1, label=" Initial Cond.")
     dpg.add_text("Vis Type: 1 for particles, 2 for Concentration field")
     dpg.add_input_int(tag="viz_type", default_value=1, label=" Vis. Display ")
-    dpg.add_text("Vel Type: 0 for No velocity field, 1 for the previously defined velocity")
+    dpg.add_text("Vel Type: 0 for No velocity field, 1 for the previously defined velocity") #Turn it to boolean -maybe
     dpg.add_input_int(tag="vel_type", default_value=0, label=" Vel. Field Conditions")
     dpg.add_text("Done?")
     dpg.add_button(label="Run Simulation", callback=sim_callback)
