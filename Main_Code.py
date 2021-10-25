@@ -125,16 +125,16 @@ class Simulation:
                     plt.ylabel('y')
                     plt.show()
         
-        if viz_type == 2:
-            avphi = getavrphimesh(x, y)
-            plt.imshow(avphi, interpolation='nearest', cmap=cmap,
-                       extent=(x_min, x_max, y_min, y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
-            plt.colorbar(label='Concentration, ϕ')  # colour map legend
-            plt.title('2D Particle Concentration Representation at '+str(round(t/dt)*dt)+' s', fontdict=None, loc='center', pad=20)  # Plot Titles
-            plt.xlabel('x')
-            plt.ylabel('y')
-            plt.show()  # plot it!
-        
+                if viz_type == 2:
+                    avphi = getavrphimesh(x, y)
+                    plt.imshow(avphi, interpolation='nearest', cmap=cmap,
+                               extent=(x_min, x_max, y_min, y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
+                    plt.colorbar(label='Concentration, ϕ')  # colour map legend
+                    plt.title('2D Particle Concentration Representation at '+str(round(t/dt)*dt)+' s', fontdict=None, loc='center', pad=20)  # Plot Titles
+                    plt.xlabel('x')
+                    plt.ylabel('y')
+                    plt.show()  # plot it!
+            
         if init_type == 2 or init_type == 3:
             visualize(init_type, viz_type)
         
