@@ -75,11 +75,13 @@ def get_velocities(x, y):  # given a coordinate, tells us what nearest velocity 
 def visualize(init_type, viz_type):
     if init_type == 1:
         avphi = getavrphimesh(x, y)
-        plt.scatter(np.linspace(x_min, x_max, Nx), avphi[0], s=0.5)
-        plt.plot(oneD_ref[:, 0], oneD_ref[:, 1], label = 'Reference solution')
+        plt.scatter(np.linspace(x_min, x_max, Nx), avphi[0], s=15, marker='.')
+        plt.plot(np.linspace(x_min, x_max, Nx), avphi[0])
+        plt.plot(oneD_ref[:, 0], oneD_ref[:, 1])
+        plt.legend(['Simulation','Reference Solution'], loc ='upper right')
         plt.title('1D Particle Distribution', fontdict=None, loc='center', pad=None)  # Plot Titles
-        plt.xlabel("x")
-        plt.ylabel("Concentration,ϕ ")
+        plt.xlabel('x')
+        plt.ylabel('Concentration,ϕ ')
         plt.show()
     if init_type == 2 or init_type == 3:
         if viz_type == 1:
