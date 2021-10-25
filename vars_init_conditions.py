@@ -7,9 +7,9 @@ x_max = 1
 y_min = -1
 y_max = 1
 
-t_max = 0.2 # simulation time in seconds
+t_max = 0.02 # simulation time in seconds
 dt = 0.0005  # step size
-N = 2 ** 18  # Number of particles
+N = 2 ** 12  # Number of particles
 D = 0.1  # diffusivity
 Nx = 64  # Euler grid size x
 Ny = 64  # Euler grid size y
@@ -22,12 +22,12 @@ vel_file = 'velocityCMM3.dat'
 # 1: 1D problem (overrides y_min, y_max, Ny, and vel_type)
 # 2: middle patch
 # 3: side patch
-init_type = 1
+init_type = 3
 
 # Visualization type
 # 1: Particles
 # 2: Concentration field
-viz_type = 2
+viz_type = 1
 
 # velocity
 # 0: No velocity field

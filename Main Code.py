@@ -21,6 +21,7 @@ x = np.random.uniform(x_min, x_max, size=N)  # initial x-positions
 y = np.random.uniform(y_min, y_max, size=N)  # initial y-positions
 pos = np.genfromtxt(vel_file, usecols=(0, 1))  # position array for velocity field
 vel = np.genfromtxt(vel_file, usecols=(2, 3))  # velocity array for velocity field
+t = 0  # initialises t for titles
 
 ones = np.ones(N)  # Array of ones for where function
 zeros = np.zeros(N)  # Array of zeros for where function
@@ -74,21 +75,32 @@ def get_velocities(x, y):  # given a coordinate, tells us what nearest velocity 
 def visualize(init_type, viz_type):
     if init_type == 1:
         avphi = getavrphimesh(x, y)
-        plt.scatter(np.linspace(x_min, x_max, Nx), avphi[0], s=0.5)
-        plt.plot(oneD_ref[:, 0], oneD_ref[:, 1])
+        plt.plot(oneD_ref[:, 0], oneD_ref[:, 1], color='r')
+        plt.scatter(np.linspace(x_min, x_max, Nx), avphi[0], s=15, marker='.', color='b')
+        plt.plot(np.linspace(x_min, x_max, Nx), avphi[0], color='b')
+        plt.legend(['Reference Solution', 'Simulation'], loc='upper right')
+        plt.title('1D Particle Distribution', fontdict=None, loc='center', pad=None)  # Plot Titles
+        plt.xlabel('x')
+        plt.ylabel('Concentration, ϕ ')
         plt.show()
     if init_type == 2 or init_type == 3:
         if viz_type == 1:
             for i in range(N):
                 col = np.where(phi == 1, blue, red)  # create array of colours for each point
             plt.scatter(x, y, color=col, s=0.1)
+            plt.title('2D Particle Location Visualisation at '+str(round(t/dt)*dt)+' s', fontdict=None, loc='center', pad=20)  # Plot Titles
+            plt.xlabel('x')
+            plt.ylabel('y')
             plt.show()
 
         if viz_type == 2:
             avphi = getavrphimesh(x, y)
             plt.imshow(avphi, interpolation='nearest', cmap=cmap,
                        extent=(x_min, x_max, y_min, y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
-            plt.colorbar()  # colour map legend
+            plt.colorbar(label='Concentration, ϕ')  # colour map legend
+            plt.title('2D Particle Concentration Representation at '+str(round(t/dt)*dt)+' s', fontdict=None, loc='center', pad=20)  # Plot Titles
+            plt.xlabel('x')
+            plt.ylabel('y')
             plt.show()  # plot it!
 
 
@@ -97,7 +109,7 @@ if init_type == 2 or init_type == 3:
 
 print(time.time() - starttime)
 
-for i in np.arange(0, (t_max+dt), dt):
+for i in np.arange(dt, (t_max + dt), dt):
     if vel_type == 1:
         v_x, v_y = get_velocities(x, y)
         x += v_x * dt
@@ -109,6 +121,7 @@ for i in np.arange(0, (t_max+dt), dt):
     x = np.where(x < x_min, 2 * x_min - x, x)  # position to bounce off wall as
     y = np.where(y > y_max, 2 * y_max - y, y)  # far as it went beyond the wall
     y = np.where(y < y_min, 2 * y_min - y, y)
+    t += dt  # t for second title
 
 visualize(init_type, viz_type)
 
