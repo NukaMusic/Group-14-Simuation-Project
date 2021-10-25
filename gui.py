@@ -41,10 +41,20 @@ with dpg.window(label="Parameters", width=500):
     dpg.add_input_int(tag="num_particles", default_value=17, label=" (exp.)") # dpg.add_drag_int for a slider
     dpg.add_text("Diffusivity")
     dpg.add_input_text(tag="diff", default_value=0.01, decimal=True, label=" m^2/s")
+    # Init_type controls the initial conditions
+        # 1: 1D problem (overrides y_min, y_max, Ny, and vel_type)
+        # 2: middle patch
+        # 3: side patch
     dpg.add_text("Init Type")
     dpg.add_input_int(tag="init_type", default_value=1, label=" Initial Cond.")
+    # Visualization type
+        # 1: Particles
+        # 2: Concentration field
     dpg.add_text("Vis Type")
     dpg.add_input_int(tag="viz_type", default_value=1, label=" Vis. Display ")
+    # velocity
+        # 0: No velocity field
+        # 1: velocity field read from file defined earlier
     dpg.add_text("Vel Type")
     dpg.add_input_int(tag="vel_type", default_value=0, label=" Vel. Field Conditions")
     dpg.add_text("Done?")
