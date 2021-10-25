@@ -3,7 +3,7 @@ import Main_Code
 import multiprocessing as mp
 
 dpg.create_context()
-dpg.create_viewport(title="Simulation", width=600, height=800)
+dpg.create_viewport(title="Simulation", width=900, height=800)
 dpg.setup_dearpygui()
 
 def call_simulation(path, a, b, c, d, e, f, g, h, i, j, k, l, m):
@@ -22,7 +22,7 @@ def sim_callback(sender, data):
     p.start()
     
 # Creating Labels for the Input Parameters
-with dpg.window(label="Parameters", width=500):
+with dpg.window(label="Parameters", width=800):
     dpg.add_text("Location of Simulation Data")
     dpg.add_input_text(tag="path", default_value="velocityCMM3.dat", label=" (.dat)")
     dpg.add_text("Domain")
@@ -40,22 +40,12 @@ with dpg.window(label="Parameters", width=500):
     dpg.add_text("# of Particles (2^(your_value_below))")
     dpg.add_input_int(tag="num_particles", default_value=17, label=" (exp.)") # dpg.add_drag_int for a slider
     dpg.add_text("Diffusivity")
-    dpg.add_input_text(tag="diff", default_value=0.01, decimal=True, label=" m^2/s")
-    # Init_type controls the initial conditions
-        # 1: 1D problem (overrides y_min, y_max, Ny, and vel_type)
-        # 2: middle patch
-        # 3: side patch
-    dpg.add_text("Init Type")
+    dpg.add_input_text(tag="diff", default_value=0.01, decimal=True)
+    dpg.add_text("Init Type: 1 for 1D problem (overrides y_min, y_max, Ny, and vel_type, 2 for middle patch, 3 for side patch)")
     dpg.add_input_int(tag="init_type", default_value=1, label=" Initial Cond.")
-    # Visualization type
-        # 1: Particles
-        # 2: Concentration field
-    dpg.add_text("Vis Type")
+    dpg.add_text("Vis Type: 1 for particles, 2 for Concentration field")
     dpg.add_input_int(tag="viz_type", default_value=1, label=" Vis. Display ")
-    # velocity
-        # 0: No velocity field
-        # 1: velocity field read from file defined earlier
-    dpg.add_text("Vel Type")
+    dpg.add_text("Vel Type: 0 for No velocity field, 1 for the previously defined velocity")
     dpg.add_input_int(tag="vel_type", default_value=0, label=" Vel. Field Conditions")
     dpg.add_text("Done?")
     dpg.add_button(label="Run Simulation", callback=sim_callback)
