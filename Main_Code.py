@@ -17,7 +17,7 @@ import multiprocessing as mp
 import dearpygui.dearpygui as dpg
 
 dpg.create_context()
-dpg.create_viewport(title="Simulation", width=900, height=800)
+dpg.create_viewport(title="Simulation", width=820, height=690)
 dpg.setup_dearpygui()
 
 
@@ -34,7 +34,7 @@ def sim_callback():
         dpg.get_value("max_y"), float(dpg.get_value("time")),
         float(dpg.get_value("step_size")), dpg.get_value("num_particles"),
         float(dpg.get_value("diff")), dpg.get_value("euler_x"), dpg.get_value("euler_y"),
-        dpg.get_value("init_type"), dpg.get_value("viz_type"), dpg.get_value("vel_type")))
+        dpg.get_value("init_type"), dpg.get_value("viz_type"), dpg.get_value("use_vel")))
     p.start()
 
 
@@ -54,16 +54,17 @@ with dpg.window(label="Parameters", width=800):
     dpg.add_input_text(tag="time", decimal=True, default_value=0.2, label=" second(s)")
     dpg.add_text("Step Size")
     dpg.add_input_text(tag="step_size", decimal=True, default_value=0.0005)
-    dpg.add_text("# of Particles (2^(your_value_below))")
-    dpg.add_input_int(tag="num_particles", default_value=14, label=" (exp.)")  # dpg.add_drag_int for a slider
+    dpg.add_text("# of Particles")
+    dpg.add_input_int(tag="num_particles", default_value=100000, label="linear")  # dpg.add_drag_int for a slider
     dpg.add_text("Diffusivity")
     dpg.add_input_text(tag="diff", default_value=0.01, decimal=True)
-    dpg.add_text("Init Type: 1 for 1D problem (overrides y_min, y_max, Ny, D, t_max and vel_type), 2 for middle patch, 3 for side patch")
+    dpg.add_text("Init Type: 1 for 1D problem (overrides y_min, y_max, Ny, D, t_max and use_vel), 2 for middle patch,")
+    dpg.add_text("3 for side patch, 4 for engineering simulation (overrides nearly all variables")
     dpg.add_input_int(tag="init_type", default_value=3, label=" Initial Cond.")
     dpg.add_text("Vis Type: 1 for particles, 2 for Concentration field")
     dpg.add_input_int(tag="viz_type", default_value=2, label=" Vis. Display ")
     dpg.add_text("Vel Type: False(0) for No velocity field, True(1) for the previously defined velocity field")
-    dpg.add_input_int(tag="vel_type", default_value=True, label=" Vel. Field Conditions")  # (change this to be a true and false button maybe?)
+    dpg.add_input_int(tag="use_vel", default_value=True, label=" Vel. Field Conditions")  # (change this to be a true and false button maybe?)
     dpg.add_text("Done?")
     dpg.add_button(label="Run Simulation", callback=sim_callback)
 
@@ -72,17 +73,17 @@ class Simulation:
     """
         Runs simulation.
 
-        database_file: Path to data.
+        velocity_field: Path to data.
     """
 
-    def __init__(self, database_file):
+    def __init__(self, velocity_field):
         """
         Init class.
         """
         self.debug = False
-        self.database_file = database_file
+        self.velocity_field = velocity_field
 
-    def start_simulation(self, x_min, x_max, y_min, y_max, t_max, dt, exp, D, Nx, Ny, init_type, viz_type, vel_type):
+    def start_simulation(self, x_min, x_max, y_min, y_max, t_max, dt, N, D, Nx, Ny, init_type, viz_type, use_vel):
         """
         Start simulation; option to change default values.
         """
@@ -93,19 +94,16 @@ class Simulation:
 
         print("[" + mp.current_process().name + "] Simulation running...")
 
-        N = 2 ** exp
         x = np.random.uniform(x_min, x_max, size=N)  # initial x-positions
         y = np.random.uniform(y_min, y_max, size=N)  # initial y-positions
-        pos = np.genfromtxt(self.database_file, usecols=(0, 1))  # position array for velocity field
-        vel = np.genfromtxt(self.database_file, usecols=(2, 3))  # velocity array for velocity field
+        pos = np.genfromtxt(self.velocity_field, usecols=(0, 1))  # position array for velocity field
+        vel = np.genfromtxt(self.velocity_field, usecols=(2, 3))  # velocity array for velocity field
         t = 0  # initialises t for titles
 
         ones = np.ones(N)  # Array of ones for where function
         zeros = np.zeros(N)  # Array of zeros for where function
         blue = np.full(N, 'b')  # Array of blue for where function
         red = np.full(N, 'r')  # Array of red for where function
-        cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', ['r', 'lime', 'b'])  # colormap for graphing
-        cmap2 = mpl.colors.LinearSegmentedColormap.from_list('eng_colmap', [(0, 'r'), (0.29999, 'lime'), (0.3, 'b'), (1, 'b')])  # colormap for engineering simulation
 
         oneD_ref = np.genfromtxt('reference_solution_1D.dat')
 
@@ -115,14 +113,31 @@ class Simulation:
             y_max = 0.001
             Ny = 1
             D = 0.1
-            vel_type = 0
+            use_vel = 0
             t_max = 0.2
 
         if init_type == 2:
             phi = np.where(np.sqrt(x ** 2 + y ** 2) < 0.3, ones, zeros)
-
+            cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                                ['r', 'lime', 'b'])  # colormap for graphing
         if init_type == 3:
             phi = np.where(x < 0, ones, zeros)
+            cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                                ['r', 'lime', 'b'])  # colormap for graphing
+        if init_type == 4:
+            phi = np.where(np.sqrt((x-0.4) ** 2 + (y-0.4) ** 2) < 0.1, ones, zeros)
+            D = 0.1
+            x_min = -1
+            x_max = 1
+            y_min = -1
+            y_max = 1
+            Nx = Ny = 64
+            N = 150000
+            use_vel = True
+            cmap = mpl.colors.LinearSegmentedColormap.from_list('eng_colmap', [(0, 'r'), (0.29999, 'lime'), (0.3, 'b'),
+                                                                (1, 'b')])  # colormap for engineering simulation
+            t_max = 10
+            viz_type = 2
 
         # Velocity data position resolution (distance between velocity field points
         x_posres = (np.max(pos[:, 0]) - np.min(pos[:, 0])) / (len(np.unique(pos[:, 0]).astype(int)) - 1)
@@ -170,7 +185,7 @@ class Simulation:
                 plt.ylabel('Concentration, ϕ ')
                 plt.show()
 
-            if init_type == 2 or init_type == 3:
+            if init_type != 1:
                 if viz_type == 1:
                     for i in range(N):
                         col = np.where(phi == 1, blue, red)  # create array of colours for each point
@@ -183,25 +198,24 @@ class Simulation:
 
                 if viz_type == 2:
                     avphi = getavrphimesh(x, y)
-                    plt.imshow(avphi, interpolation='nearest', cmap=cmap2,
+                    plt.imshow(avphi, interpolation='nearest', cmap=cmap,
                                extent=(x_min, x_max, y_min,
                                        y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
                     plt.colorbar(label='Concentration, ϕ')  # colour map legend
-                    plt.title('2D Particle Concentration Representation at ' + str(t) + ' s',
+                    plt.title('2D Particle Concentration Representation at ' + str(round(t / dt) * dt) + ' s',
                               fontdict=None, loc='center', pad=20)  # Plot Titles
                     plt.xlabel('x')
                     plt.ylabel('y')
                     plt.show()  # plot it!
 
-        if init_type == 2 or init_type == 3:
+        if init_type != 1:
             visualize(init_type, viz_type)
 
         if self.debug:
             print(time.time() - starttime)
-        init_type = 3
-        viz_type =2
+
         for step in np.arange(0, t_max, dt):
-            if vel_type:
+            if use_vel:
                 v_x, v_y = get_velocities(x, y)
                 x += v_x * dt
                 y += v_y * dt
@@ -213,7 +227,7 @@ class Simulation:
             y = np.where(y > y_max, 2 * y_max - y, y)  # far as it went beyond the wall
             y = np.where(y < y_min, 2 * y_min - y, y)
             t += dt  # t for titles
-            if init_type == 2 or init_type == 3:
+            if init_type != 1:
                 if round(t % 0.05, 6) == 0:
                     visualize(init_type, viz_type)
 
