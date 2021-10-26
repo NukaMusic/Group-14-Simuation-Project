@@ -48,20 +48,20 @@ with dpg.window(label="Parameters", width=800):
     dpg.add_input_int(tag="min_y", default_value=-1, label=" (min. y)")
     dpg.add_input_int(tag="max_y", default_value=1, label=" (max. y)")
     dpg.add_text("Euler Grid Size")
-    dpg.add_input_int(tag="euler_x", default_value=64, label=" (x)")
-    dpg.add_input_int(tag="euler_y", default_value=64, label=" (y)")
+    dpg.add_input_int(tag="euler_x", default_value=16, label=" (x)")
+    dpg.add_input_int(tag="euler_y", default_value=16, label=" (y)")
     dpg.add_text("Simulated time")
     dpg.add_input_text(tag="time", decimal=True, default_value=0.2, label=" second(s)")
     dpg.add_text("Step Size")
     dpg.add_input_text(tag="step_size", decimal=True, default_value=0.0005)
     dpg.add_text("# of Particles (2^(your_value_below))")
-    dpg.add_input_int(tag="num_particles", default_value=17, label=" (exp.)")  # dpg.add_drag_int for a slider
+    dpg.add_input_int(tag="num_particles", default_value=14, label=" (exp.)")  # dpg.add_drag_int for a slider
     dpg.add_text("Diffusivity")
     dpg.add_input_text(tag="diff", default_value=0.01, decimal=True)
     dpg.add_text("Init Type: 1 for 1D problem (overrides y_min, y_max, Ny, D, t_max and vel_type), 2 for middle patch, 3 for side patch")
-    dpg.add_input_int(tag="init_type", default_value=1, label=" Initial Cond.")
+    dpg.add_input_int(tag="init_type", default_value=3, label=" Initial Cond.")
     dpg.add_text("Vis Type: 1 for particles, 2 for Concentration field")
-    dpg.add_input_int(tag="viz_type", default_value=1, label=" Vis. Display ")
+    dpg.add_input_int(tag="viz_type", default_value=2, label=" Vis. Display ")
     dpg.add_text("Vel Type: False(0) for No velocity field, True(1) for the previously defined velocity field")
     dpg.add_input_int(tag="vel_type", default_value=True, label=" Vel. Field Conditions")  # (change this to be a true and false button maybe?)
     dpg.add_text("Done?")
@@ -105,6 +105,7 @@ class Simulation:
         blue = np.full(N, 'b')  # Array of blue for where function
         red = np.full(N, 'r')  # Array of red for where function
         cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap', ['r', 'lime', 'b'])  # colormap for graphing
+        cmap2 = mpl.colors.LinearSegmentedColormap.from_list('eng_colmap', [(0, 'r'), (0.29999, 'lime'), (0.3, 'b'), (1, 'b')])  # colormap for engineering simulation
 
         oneD_ref = np.genfromtxt('reference_solution_1D.dat')
 
@@ -182,11 +183,11 @@ class Simulation:
 
                 if viz_type == 2:
                     avphi = getavrphimesh(x, y)
-                    plt.imshow(avphi, interpolation='nearest', cmap=cmap,
+                    plt.imshow(avphi, interpolation='nearest', cmap=cmap2,
                                extent=(x_min, x_max, y_min,
                                        y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
                     plt.colorbar(label='Concentration, ϕ')  # colour map legend
-                    plt.title('2D Particle Concentration Representation at ' + str(round(t / dt) * dt) + ' s',
+                    plt.title('2D Particle Concentration Representation at ' + str(t) + ' s',
                               fontdict=None, loc='center', pad=20)  # Plot Titles
                     plt.xlabel('x')
                     plt.ylabel('y')
@@ -197,8 +198,9 @@ class Simulation:
 
         if self.debug:
             print(time.time() - starttime)
-
-        for step in np.arange(dt, (t_max + dt), dt):
+        init_type = 3
+        viz_type =2
+        for step in np.arange(0, t_max, dt):
             if vel_type:
                 v_x, v_y = get_velocities(x, y)
                 x += v_x * dt
@@ -210,9 +212,13 @@ class Simulation:
             x = np.where(x < x_min, 2 * x_min - x, x)  # position to bounce off wall as
             y = np.where(y > y_max, 2 * y_max - y, y)  # far as it went beyond the wall
             y = np.where(y < y_min, 2 * y_min - y, y)
-            t += dt  # t for second title
+            t += dt  # t for titles
+            if init_type == 2 or init_type == 3:
+                if round(t % 0.05, 6) == 0:
+                    visualize(init_type, viz_type)
 
-        visualize(init_type, viz_type)
+        if init_type == 1:
+            visualize(init_type, viz_type)
 
         if self.debug:
             print(time.time() - starttime)
