@@ -107,37 +107,41 @@ class Simulation:
 
         oneD_ref = np.genfromtxt('reference_solution_1D.dat')
 
-        if init_type == 1:
-            phi = np.where(x <= 0, ones, zeros)
-            y_min = -0.001
-            y_max = 0.001
-            Ny = 1
-            D = 0.1
-            use_vel = 0
-            t_max = 0.2
+        def set_initial_conditons(startcond):
+            if startcond == 1:
+                phi = np.where(x <= 0, ones, zeros)
+                y_min = -0.001
+                y_max = 0.001
+                Ny = 1
+                D = 0.1
+                use_vel = 0
+                t_max = 0.2
 
-        if init_type == 2:
-            phi = np.where(np.sqrt(x ** 2 + y ** 2) < 0.3, ones, zeros)
-            cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                                ['r', 'lime', 'b'])  # colormap for graphing
-        if init_type == 3:
-            phi = np.where(x < 0, ones, zeros)
-            cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                                ['r', 'lime', 'b'])  # colormap for graphing
-        if init_type == 4:
-            phi = np.where(np.sqrt((x-0.4) ** 2 + (y-0.4) ** 2) < 0.1, ones, zeros)
-            D = 0.1
-            x_min = -1
-            x_max = 1
-            y_min = -1
-            y_max = 1
-            Nx = Ny = 64
-            N = 150000
-            use_vel = True
-            cmap = mpl.colors.LinearSegmentedColormap.from_list('eng_colmap', [(0, 'r'), (0.29999, 'lime'), (0.3, 'b'),
-                                                                (1, 'b')])  # colormap for engineering simulation
-            t_max = 10
-            viz_type = 2
+            if startcond == 2:
+                phi = np.where(np.sqrt(x ** 2 + y ** 2) < 0.3, ones, zeros)
+                cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                                    ['r', 'lime', 'b'])  # colormap for graphing
+            if startcond == 3:
+                phi = np.where(x < 0, ones, zeros)
+                cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                                    ['r', 'lime', 'b'])  # colormap for graphing
+            if startcond == 4:
+                phi = np.where(np.sqrt((x-0.4) ** 2 + (y-0.4) ** 2) < 0.1, ones, zeros)
+                D = 0.1
+                x_min = -1
+                x_max = 1
+                y_min = -1
+                y_max = 1
+                Nx = Ny = 64
+                N = 150000
+                use_vel = True
+                t_max = 10
+                viz_type = 2
+                cmap = mpl.colors.LinearSegmentedColormap.from_list('eng_colmap', [(0, 'r'), (0.29999, 'lime'),
+                                                                    (0.3, 'b'), (1, 'b')])
+                                                                    # colormap for engineering simulation
+
+        set_initial_conditons(init_type)
 
         # Velocity data position resolution (distance between velocity field points
         x_posres = (np.max(pos[:, 0]) - np.min(pos[:, 0])) / (len(np.unique(pos[:, 0]).astype(int)) - 1)
@@ -208,11 +212,12 @@ class Simulation:
                     plt.ylabel('y')
                     plt.show()  # plot it!
 
-        if init_type != 1:
-            visualize(init_type, viz_type)
-
         if self.debug:
             print(time.time() - starttime)
+
+
+        if init_type != 1:
+            visualize(init_type, viz_type)
 
         for step in np.arange(0, t_max, dt):
             if use_vel:
@@ -230,9 +235,9 @@ class Simulation:
             if init_type != 1:
                 if round(t % 0.05, 6) == 0:
                     visualize(init_type, viz_type)
-
-        if init_type == 1:
-            visualize(init_type, viz_type)
+            if init_type == 1:
+                if round(t % t_max, 6) == 0:
+                    visualize(init_type, viz_type)
 
         if self.debug:
             print(time.time() - starttime)
