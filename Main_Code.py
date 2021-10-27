@@ -214,7 +214,7 @@ class Simulation:
         if self.debug:
             print(time.time() - starttime)
 
-        for step in np.arange(0, t_max, dt):
+        for _ in np.arange(0, t_max, dt):
             if use_vel:
                 v_x, v_y = get_velocities(x, y)
                 x += v_x * dt
