@@ -187,8 +187,7 @@ class Simulation:
 
             if init_type != 1:
                 if viz_type == 1:
-                    for i in range(N):
-                        col = np.where(phi == 1, blue, red)  # create array of colours for each point
+                    col = np.where(phi == 1, blue, red)  # create array of colours for each point
                     plt.scatter(x, y, color=col, s=0.1)
                     plt.title('2D Particle Location Visualisation at ' + str(round(t / dt) * dt) + ' s', fontdict=None,
                               loc='center', pad=20)  # Plot Titles
