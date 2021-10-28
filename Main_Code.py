@@ -21,9 +21,11 @@ dpg.create_viewport(title="Simulation", width=820, height=690)
 dpg.setup_dearpygui()
 
 
-def call_simulation(path, a, b, c, d, e, f, g, h, i, j, k, l, m):
-    temp = Simulation(path)
-    temp.start_simulation(a, b, c, d, e, f, g, h, i, j, k, l, m)
+def call_simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, step_size, num_particles, diff, init_type,
+                    viz_type, use_vel):
+    temp = Simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, step_size, num_particles, diff,
+                      init_type, viz_type, use_vel)
+    temp.start_simulation(step_size, init_type, viz_type, use_vel)
 
 
 def sim_callback():
@@ -76,162 +78,164 @@ class Simulation:
         velocity_field: Path to data.
     """
 
-    def __init__(self, velocity_field):
+    def __init__(self, velocity_field, x_min, x_max, y_min, y_max, t_max, dt, N, D, Nx, Ny, init_type, viz_type, use_vel):
         """
         Init class.
         """
         self.debug = False
         self.velocity_field = velocity_field
+        self.x_min = x_min
+        self.x_max = x_max
+        self.y_min = y_min
+        self.y_max = y_max
+        self.t_max = t_max
+        self.dt = dt
+        self.N = N
+        self.D = D
+        self.Nx = Nx
+        self.Ny = Ny
+        self.init_type = init_type
+        self.viz_type = viz_type
+        self.use_vel = use_vel
+        self.pos = np.genfromtxt(self.velocity_field, usecols=(0, 1))  # position array for velocity field
+        self.vel = np.genfromtxt(self.velocity_field, usecols=(2, 3))  # velocity array for velocity field
+        self.t = 0  # initialises t for titles
+        self.ones = np.ones(self.N)  # Array of ones for where function
+        self.zeros = np.zeros(self.N)  # Array of zeros for where function
+        self.blue = np.full(self.N, 'b')  # Array of blue for where function
+        self.red = np.full(self.N, 'r')  # Array of red for where function
+        self.oneD_ref = np.genfromtxt('reference_solution_1D.dat')
+        # Velocity data position resolution (distance between velocity field points
+        self.x_posres = (np.max(self.pos[:, 0]) - np.min(self.pos[:, 0]))/(len(np.unique(self.pos[:, 0]).astype(int))-1)
+        self.y_posres = (np.max(self.pos[:, 1]) - np.min(self.pos[:, 1]))/(len(np.unique(self.pos[:, 1]).astype(int))-1)
+        self.maxdist = np.sqrt(self.x_posres ** 2 + self.y_posres ** 2)  # maximum allowable distance for a particle to be from a vel coord
+        self.x = np.random.uniform(self.x_min, self.x_max, size=self.N)  # initial x-positions
+        self.y = np.random.uniform(self.y_min, self.y_max, size=self.N)  # initial y-positions
 
-    def start_simulation(self, x_min, x_max, y_min, y_max, t_max, dt, N, D, Nx, Ny, init_type, viz_type, use_vel):
+    def get_initial_values(self, init_type):
+        if init_type == 1:
+            self.phi = np.where(self.x <= 0, self.ones, self.zeros)
+            self.y_min = -0.001
+            self.y_max = 0.001
+            self.Ny = 1
+            self.D = 0.1
+            self.use_vel = 0
+            self.t_max = 0.2
+
+        if init_type == 2:
+            self.phi = np.where(np.sqrt(self.x ** 2 + self.y ** 2) < 0.3, self.ones, self.zeros)
+            self.cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                                ['r', 'lime', 'b'])  # colormap for graphing
+        if init_type == 3:
+            self.phi = np.where(self.x < 0, self.ones, self.zeros)
+            self.cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                                ['r', 'lime', 'b'])  # colormap for graphing
+        if init_type == 4:
+            self.phi = np.where(np.sqrt((self.x - 0.4) ** 2 + (self.y - 0.4) ** 2) < 0.1, self.ones, self.zeros)
+            self.D = 0.1
+            self.x_min = -1
+            self.x_max = 1
+            self.y_min = -1
+            self.y_max = 1
+            self.Nx = Ny = 64
+            self.N = 150000
+            self.use_vel = True
+            self.cmap = mpl.colors.LinearSegmentedColormap.from_list('eng_colmap', [(0, 'r'), (0.29999, 'lime'),
+                                                                    (0.3, 'b'), (1, 'b')])
+                                                                    # colormap for engineering simulation
+            self.t_max = 10
+            self.viz_type = 2
+
+    # Create a mesh and find the average phi values within it
+    def getavrphimesh(self):
+        x_gran = np.round((self.x - self.x_min) / (self.x_max - self.x_min) * (self.Nx - 1)).astype(int)  # figures out which grid square (granular
+        y_gran = np.round((self.y - self.y_min) / (self.y_max - self.y_min) * (self.Ny - 1)).astype(int)  # coordinate) each point fits into
+        grancoord = np.column_stack((x_gran, y_gran))  # array of each point's granular coordinate
+        unq, ids, count = np.unique(grancoord, return_inverse=True, return_counts=True, axis=0)
+        avrphi = np.bincount(ids, self.phi) / count
+        avrphi = np.rot90(np.reshape(avrphi, [self.Nx, self.Ny]))
+        return avrphi
+
+
+    def get_velocities(self, x, y):  # given a coordinate, tells us what nearest velocity vector is
+        distance, index = spatial.cKDTree(self.pos).query(np.column_stack((x, y)), workers=-1)
+        x_velocities = self.vel[index][:, 0]
+        y_velocities = self.vel[index][:, 1]
+        x_velocities = np.where(distance > self.maxdist, self.zeros, x_velocities)
+        y_velocities = np.where(distance > self.maxdist, self.zeros, y_velocities)
+        return x_velocities, y_velocities
+
+    # Visualize the data
+    def visualize(self, init_type, viz_type):
+
+        if init_type == 1:
+            avphi = self.getavrphimesh()
+            plt.plot(self.oneD_ref[:, 0], self.oneD_ref[:, 1], color='r')
+            plt.scatter(np.linspace(self.x_min, self.x_max, self.Nx), avphi[0], s=15, marker='.', color='b')
+            plt.plot(np.linspace(self.x_min, self.x_max, self.Nx), avphi[0], color='b')
+            plt.legend(['Reference Solution', 'Simulation'], loc='upper right')
+            plt.title('1D Particle Distribution', fontdict=None, loc='center', pad=None)  # Plot Titles
+            plt.xlabel('x')
+            plt.ylabel('Concentration, ϕ ')
+            plt.show()
+
+        if init_type != 1:
+            if viz_type == 1:
+                col = np.where(self.phi == 1, self.blue, self.red)  # create array of colours for each point
+                plt.scatter(self.x, self.y, color=col, s=0.1)
+                plt.title('2D Particle Location Visualisation at ' + str(round(self.t / self.dt) * self.dt) + ' s', fontdict=None,
+                          loc='center', pad=20)  # Plot Titles
+                plt.xlabel('x')
+                plt.ylabel('y')
+                plt.show()
+
+            if viz_type == 2:
+                avphi = self.getavrphimesh()
+                plt.imshow(avphi, interpolation='nearest', cmap=self.cmap,
+                           extent=(self.x_min, self.x_max, self.y_min,
+                                   self.y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
+                plt.colorbar(label='Concentration, ϕ')  # colour map legend
+                plt.title('2D Particle Concentration Representation at ' + str(round(self.t / self.dt) * self.dt) + ' s',
+                          fontdict=None, loc='center', pad=20)  # Plot Titles
+                plt.xlabel('x')
+                plt.ylabel('y')
+                plt.show()  # plot it!
+
+    def start_simulation(self, init_type, viz_type, use_vel):
         """
         Start simulation; option to change default values.
         """
         starttime = time.time()
 
-        if self.debug:
-            print(time.time() - starttime)
-
         print("[" + mp.current_process().name + "] Simulation running...")
 
-        x = np.random.uniform(x_min, x_max, size=N)  # initial x-positions
-        y = np.random.uniform(y_min, y_max, size=N)  # initial y-positions
-        pos = np.genfromtxt(self.velocity_field, usecols=(0, 1))  # position array for velocity field
-        vel = np.genfromtxt(self.velocity_field, usecols=(2, 3))  # velocity array for velocity field
-        t = 0  # initialises t for titles
+        self.get_initial_values(init_type)
 
-        ones = np.ones(N)  # Array of ones for where function
-        zeros = np.zeros(N)  # Array of zeros for where function
-        blue = np.full(N, 'b')  # Array of blue for where function
-        red = np.full(N, 'r')  # Array of red for where function
-
-        oneD_ref = np.genfromtxt('reference_solution_1D.dat')
-
-        if init_type == 1:
-            phi = np.where(x <= 0, ones, zeros)
-            y_min = -0.001
-            y_max = 0.001
-            Ny = 1
-            D = 0.1
-            use_vel = 0
-            t_max = 0.2
-
-        if init_type == 2:
-            phi = np.where(np.sqrt(x ** 2 + y ** 2) < 0.3, ones, zeros)
-            cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                                ['r', 'lime', 'b'])  # colormap for graphing
-        if init_type == 3:
-            phi = np.where(x < 0, ones, zeros)
-            cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                                ['r', 'lime', 'b'])  # colormap for graphing
-        if init_type == 4:
-            phi = np.where(np.sqrt((x-0.4) ** 2 + (y-0.4) ** 2) < 0.1, ones, zeros)
-            D = 0.1
-            x_min = -1
-            x_max = 1
-            y_min = -1
-            y_max = 1
-            Nx = Ny = 64
-            N = 150000
-            use_vel = True
-            cmap = mpl.colors.LinearSegmentedColormap.from_list('eng_colmap', [(0, 'r'), (0.29999, 'lime'), (0.3, 'b'),
-                                                                (1, 'b')])  # colormap for engineering simulation
-            t_max = 10
-            viz_type = 2
-
-        # Velocity data position resolution (distance between velocity field points
-        x_posres = (np.max(pos[:, 0]) - np.min(pos[:, 0])) / (len(np.unique(pos[:, 0]).astype(int)) - 1)
-        y_posres = (np.max(pos[:, 1]) - np.min(pos[:, 1])) / (len(np.unique(pos[:, 1]).astype(int)) - 1)
-
-        maxdist = np.sqrt(
-            x_posres ** 2 + y_posres ** 2)  # maximum allowable distance for a particle to be from a vel coord
+        if self.init_type != 1:
+            self.visualize(init_type, viz_type)
 
         if self.debug:
             print(time.time() - starttime)
 
-        # Create a mesh and find the average phi values within it
-        def getavrphimesh(x, y):
-            x_gran = np.round((x - x_min) / (x_max - x_min) * (Nx - 1)).astype(
-                int)  # figures out which grid square (granular
-            y_gran = np.round((y - y_min) / (y_max - y_min) * (Ny - 1)).astype(int)  # coordinate) each point fits into
-            grancoord = np.column_stack((x_gran, y_gran))  # array of each point's granular coordinate
-            unq, ids, count = np.unique(grancoord, return_inverse=True, return_counts=True, axis=0)
-            avrphi = np.bincount(ids, phi) / count
-            avrphi = np.rot90(np.reshape(avrphi, [Nx, Ny]))
-            return avrphi
-
-        if self.debug:
-            print(time.time() - starttime)
-
-        def get_velocities(x, y):  # given a coordinate, tells us what nearest velocity vector is
-            distance, index = spatial.cKDTree(pos).query(np.column_stack((x, y)), workers=-1)
-            x_velocities = vel[index][:, 0]
-            y_velocities = vel[index][:, 1]
-            x_velocities = np.where(distance > maxdist, zeros, x_velocities)
-            y_velocities = np.where(distance > maxdist, zeros, y_velocities)
-            return x_velocities, y_velocities
-
-        # Visualize the data
-        def visualize(init_type, viz_type):
-
-            if init_type == 1:
-                avphi = getavrphimesh(x, y)
-                plt.plot(oneD_ref[:, 0], oneD_ref[:, 1], color='r')
-                plt.scatter(np.linspace(x_min, x_max, Nx), avphi[0], s=15, marker='.', color='b')
-                plt.plot(np.linspace(x_min, x_max, Nx), avphi[0], color='b')
-                plt.legend(['Reference Solution', 'Simulation'], loc='upper right')
-                plt.title('1D Particle Distribution', fontdict=None, loc='center', pad=None)  # Plot Titles
-                plt.xlabel('x')
-                plt.ylabel('Concentration, ϕ ')
-                plt.show()
-
-            if init_type != 1:
-                if viz_type == 1:
-                    col = np.where(phi == 1, blue, red)  # create array of colours for each point
-                    plt.scatter(x, y, color=col, s=0.1)
-                    plt.title('2D Particle Location Visualisation at ' + str(round(t / dt) * dt) + ' s', fontdict=None,
-                              loc='center', pad=20)  # Plot Titles
-                    plt.xlabel('x')
-                    plt.ylabel('y')
-                    plt.show()
-
-                if viz_type == 2:
-                    avphi = getavrphimesh(x, y)
-                    plt.imshow(avphi, interpolation='nearest', cmap=cmap,
-                               extent=(x_min, x_max, y_min,
-                                       y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
-                    plt.colorbar(label='Concentration, ϕ')  # colour map legend
-                    plt.title('2D Particle Concentration Representation at ' + str(round(t / dt) * dt) + ' s',
-                              fontdict=None, loc='center', pad=20)  # Plot Titles
-                    plt.xlabel('x')
-                    plt.ylabel('y')
-                    plt.show()  # plot it!
-
-        if init_type != 1:
-            visualize(init_type, viz_type)
-
-        if self.debug:
-            print(time.time() - starttime)
-
-        for _ in np.arange(0, t_max, dt):
+        for _ in np.arange(0, self.t_max, self.dt):
             if use_vel:
-                v_x, v_y = get_velocities(x, y)
-                x += v_x * dt
-                y += v_y * dt
-            x += np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N)  # Lagrange Diffusion and advection
-            y += np.sqrt(2 * D * dt) * np.random.normal(0, 1, size=N)  # Lagrange Diffusion and advection
+                v_x, v_y = self.get_velocities(self.x, self.y)
+                self.x += v_x * self.dt
+                self.y += v_y * self.dt
+            self.x += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Lagrange Diffusion and advection
+            self.y += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Lagrange Diffusion and advection
             # Walls
-            x = np.where(x > x_max, 2 * x_max - x, x)  # if point is beyond wall, update
-            x = np.where(x < x_min, 2 * x_min - x, x)  # position to bounce off wall as
-            y = np.where(y > y_max, 2 * y_max - y, y)  # far as it went beyond the wall
-            y = np.where(y < y_min, 2 * y_min - y, y)
-            t += dt  # t for titles
-            if init_type != 1:
-                if round(t % 0.05, 6) == 0:
-                    visualize(init_type, viz_type)
+            self.x = np.where(self.x > self.x_max, 2 * self.x_max - self.x, self.x)  # if point is beyond wall, update
+            self.x = np.where(self.x < self.x_min, 2 * self.x_min - self.x, self.x)  # position to bounce off wall as
+            self.y = np.where(self.y > self.y_max, 2 * self.y_max - self.y, self.y)  # far as it went beyond the wall
+            self.y = np.where(self.y < self.y_min, 2 * self.y_min - self.y, self.y)
+            self.t += self.dt  # t for titles
+            if self.init_type != 1:
+                if round(self.t % 0.05, 6) == 0:
+                    self.visualize(init_type, viz_type)
 
-        if init_type == 1:
-            visualize(init_type, viz_type)
+        if self.init_type == 1:
+            self.visualize(init_type, viz_type)
 
         if self.debug:
             print(time.time() - starttime)
