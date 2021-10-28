@@ -25,7 +25,7 @@ def call_simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, st
                     viz_type, use_vel):
     temp = Simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, step_size, num_particles, diff,
                       init_type, viz_type, use_vel)
-    temp.start_simulation(init_type, viz_type, use_vel)
+    temp.start_simulation(init_type, viz_type)
 
 
 def sim_callback():
@@ -122,16 +122,15 @@ class Simulation:
             self.use_vel = 0
             self.t_max = 0.2
 
-        if init_type == 2:
+        elif init_type == 2:
             self.phi = np.where(np.sqrt(self.x ** 2 + self.y ** 2) < 0.3, self.ones, self.zeros)
             self.cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
                                                                 ['r', 'lime', 'b'])  # colormap for graphing
-        if init_type == 3:
+        elif init_type == 3:
             self.phi = np.where(self.x < 0, self.ones, self.zeros)
             self.cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
                                                                 ['r', 'lime', 'b'])  # colormap for graphing
-        if init_type == 4:
-            self.phi = np.where(np.sqrt((self.x - 0.4) ** 2 + (self.y - 0.4) ** 2) < 0.1, self.ones, self.zeros)
+        elif init_type == 4:
             self.D = 0.1
             self.x_min = -1
             self.x_max = 1
@@ -145,6 +144,11 @@ class Simulation:
                                                                     # colormap for engineering simulation
             self.t_max = 10
             self.viz_type = 2
+            self.x = np.random.uniform(self.x_min, self.x_max, size=self.N)  # initial x-positions
+            self.y = np.random.uniform(self.y_min, self.y_max, size=self.N)  # initial y-positions
+            self.ones = np.ones(self.N)  # Array of ones for where function
+            self.zeros = np.zeros(self.N)  # Array of zeros for where function
+            self.phi = np.where(np.sqrt((self.x - 0.4) ** 2 + (self.y - 0.4) ** 2) < 0.1, self.ones, self.zeros)
 
 
     # Create a mesh and find the average phi values within it
@@ -179,7 +183,7 @@ class Simulation:
             plt.ylabel('Concentration, ϕ ')
             plt.show()
 
-        if init_type != 1:
+        else:
             if viz_type == 1:
                 col = np.where(self.phi == 1, self.blue, self.red)  # create array of colours for each point
                 plt.scatter(self.x, self.y, color=col, s=0.1)
@@ -201,7 +205,7 @@ class Simulation:
                 plt.ylabel('y')
                 plt.show()  # plot it!
 
-    def start_simulation(self, init_type, viz_type, use_vel):
+    def start_simulation(self, init_type, viz_type):
 
         starttime = time.time()
 
@@ -216,7 +220,7 @@ class Simulation:
             print(time.time() - starttime)
 
         for _ in np.arange(0, self.t_max, self.dt):
-            if use_vel == 1:
+            if self.use_vel == 1:
                 v_x, v_y = self.get_velocities()
                 self.x += v_x * self.dt
                 self.y += v_y * self.dt
