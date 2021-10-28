@@ -25,7 +25,7 @@ def call_simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, st
                     viz_type, use_vel):
     temp = Simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, step_size, num_particles, diff,
                       init_type, viz_type, use_vel)
-    temp.start_simulation(step_size, init_type, viz_type, use_vel)
+    temp.start_simulation(init_type, viz_type, use_vel)
 
 
 def sim_callback():
@@ -65,8 +65,8 @@ with dpg.window(label="Parameters", width=800):
     dpg.add_input_int(tag="init_type", default_value=3, label=" Initial Cond.")
     dpg.add_text("Vis Type: 1 for particles, 2 for Concentration field")
     dpg.add_input_int(tag="viz_type", default_value=2, label=" Vis. Display ")
-    dpg.add_text("Vel Type: False(0) for No velocity field, True(1) for the previously defined velocity field")
-    dpg.add_input_int(tag="use_vel", default_value=True, label=" Vel. Field Conditions")  # (change this to be a true and false button maybe?)
+    dpg.add_text("Vel Type: 0 for No velocity field, 1 for the previously defined velocity field")
+    dpg.add_input_int(tag="use_vel", default_value=1, label=" Vel. Field Conditions")  # (change this to be a true and false button maybe?)
     dpg.add_text("Done?")
     dpg.add_button(label="Run Simulation", callback=sim_callback)
 
@@ -137,14 +137,15 @@ class Simulation:
             self.x_max = 1
             self.y_min = -1
             self.y_max = 1
-            self.Nx = Ny = 64
+            self.Nx = self.Ny = 64
             self.N = 150000
-            self.use_vel = True
+            self.use_vel = 1
             self.cmap = mpl.colors.LinearSegmentedColormap.from_list('eng_colmap', [(0, 'r'), (0.29999, 'lime'),
                                                                     (0.3, 'b'), (1, 'b')])
                                                                     # colormap for engineering simulation
             self.t_max = 10
             self.viz_type = 2
+
 
     # Create a mesh and find the average phi values within it
     def getavrphimesh(self):
@@ -156,9 +157,8 @@ class Simulation:
         avrphi = np.rot90(np.reshape(avrphi, [self.Nx, self.Ny]))
         return avrphi
 
-
-    def get_velocities(self, x, y):  # given a coordinate, tells us what nearest velocity vector is
-        distance, index = spatial.cKDTree(self.pos).query(np.column_stack((x, y)), workers=-1)
+    def get_velocities(self):  # given a coordinate, tells us what nearest velocity vector is
+        distance, index = spatial.cKDTree(self.pos).query(np.column_stack((self.x, self.y)), workers=-1)
         x_velocities = self.vel[index][:, 0]
         y_velocities = self.vel[index][:, 1]
         x_velocities = np.where(distance > self.maxdist, self.zeros, x_velocities)
@@ -202,9 +202,7 @@ class Simulation:
                 plt.show()  # plot it!
 
     def start_simulation(self, init_type, viz_type, use_vel):
-        """
-        Start simulation; option to change default values.
-        """
+
         starttime = time.time()
 
         print("[" + mp.current_process().name + "] Simulation running...")
@@ -218,8 +216,8 @@ class Simulation:
             print(time.time() - starttime)
 
         for _ in np.arange(0, self.t_max, self.dt):
-            if use_vel:
-                v_x, v_y = self.get_velocities(self.x, self.y)
+            if use_vel == 1:
+                v_x, v_y = self.get_velocities()
                 self.x += v_x * self.dt
                 self.y += v_y * self.dt
             self.x += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Lagrange Diffusion and advection
