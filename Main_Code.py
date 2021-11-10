@@ -150,7 +150,6 @@ class Simulation:
             self.zeros = np.zeros(self.N)  # Array of zeros for where function
             self.phi = np.where(np.sqrt((self.x - 0.4) ** 2 + (self.y - 0.4) ** 2) < 0.1, self.ones, self.zeros)
 
-
     # Create a mesh and find the average phi values within it
     def getavrphimesh(self):
         x_gran = np.round((self.x - self.x_min) / (self.x_max - self.x_min) * (self.Nx - 1)).astype(int)  # figures out which grid square (granular
@@ -187,19 +186,25 @@ class Simulation:
             if viz_type == 1:
                 col = np.where(self.phi == 1, self.blue, self.red)  # create array of colours for each point
                 plt.scatter(self.x, self.y, color=col, s=0.1)
-                plt.title('2D Particle Location Visualisation at ' + str(round(self.t / self.dt) * self.dt) + ' s', fontdict=None,
+                plt.title('2D Particle Location Visualisation at ' + str(round(self.t / self.dt) * self.dt) + 's', fontdict=None,
                           loc='center', pad=20)  # Plot Titles
                 plt.xlabel('x')
                 plt.ylabel('y')
                 plt.show()
 
             if viz_type == 2:
-                avphi = self.getavrphimesh()
+                if self.init_type != 4:
+                    avphi = self.getavrphimesh()
+                if self.init_type == 4:
+                    if self.t == 0:
+                        avphi = self.getavrphimesh()
+                    averphi = self.getavrphimesh()
+                    avphi = np.where(averphi >= 0.3, np.ones((self.Nx, self.Ny)), avphi)
                 plt.imshow(avphi, interpolation='nearest', cmap=self.cmap,
                            extent=(self.x_min, self.x_max, self.y_min,
                                    self.y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
                 plt.colorbar(label='Concentration, ϕ')  # colour map legend
-                plt.title('2D Particle Concentration Representation at ' + str(round(self.t / self.dt) * self.dt) + ' s',
+                plt.title('2D Particle Concentration Representation at ' + str(round(self.t / self.dt) * self.dt) + 's',
                           fontdict=None, loc='center', pad=20)  # Plot Titles
                 plt.xlabel('x')
                 plt.ylabel('y')
@@ -234,6 +239,7 @@ class Simulation:
             self.t += self.dt  # t for titles
             if self.init_type != 1:
                 if round(self.t % 0.05, 6) == 0:
+                    print(self.t)
                     self.visualize(init_type, viz_type)
 
         if self.init_type == 1:
