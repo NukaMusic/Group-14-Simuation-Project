@@ -172,10 +172,10 @@ class Simulation:
     def visualize(self, init_type, viz_type):
 
         if init_type == 1:
-            avphi = self.getavrphimesh()
+            self.avphi = self.getavrphimesh()
             plt.plot(self.oneD_ref[:, 0], self.oneD_ref[:, 1], color='r')
-            plt.scatter(np.linspace(self.x_min, self.x_max, self.Nx), avphi[0], s=15, marker='.', color='b')
-            plt.plot(np.linspace(self.x_min, self.x_max, self.Nx), avphi[0], color='b')
+            plt.scatter(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], s=15, marker='.', color='b')
+            plt.plot(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], color='b')
             plt.legend(['Reference Solution', 'Simulation'], loc='upper right')
             plt.title('1D Particle Distribution', fontdict=None, loc='center', pad=None)  # Plot Titles
             plt.xlabel('x')
@@ -194,13 +194,10 @@ class Simulation:
 
             if viz_type == 2:
                 if self.init_type != 4:
-                    avphi = self.getavrphimesh()
-                if self.init_type == 4:
-                    if self.t == 0:
-                        avphi = self.getavrphimesh()
-                    averphi = self.getavrphimesh()
-                    avphi = np.where(averphi >= 0.3, np.ones((self.Nx, self.Ny)), avphi)
-                plt.imshow(avphi, interpolation='nearest', cmap=self.cmap,
+                    self.avphi = self.getavrphimesh()
+                if self.init_type == 4 and self.t == 0:
+                    self.avphi = self.getavrphimesh()
+                plt.imshow(self.avphi, interpolation='nearest', cmap=self.cmap,
                            extent=(self.x_min, self.x_max, self.y_min,
                                    self.y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
                 plt.colorbar(label='Concentration, ϕ')  # colour map legend
@@ -237,9 +234,13 @@ class Simulation:
             self.y = np.where(self.y > self.y_max, 2 * self.y_max - self.y, self.y)  # far as it went beyond the wall
             self.y = np.where(self.y < self.y_min, 2 * self.y_min - self.y, self.y)
             self.t += self.dt  # t for titles
+            if self.init_type == 4:
+                if self.t == 0:
+                    self.avphi = self.getavrphimesh()
+                averphi = self.getavrphimesh()
+                self.avphi = np.where(averphi >= 0.3, np.ones((self.Nx, self.Ny)), self.avphi)
             if self.init_type != 1:
                 if round(self.t % 0.05, 6) == 0:
-                    print(self.t)
                     self.visualize(init_type, viz_type)
 
         if self.init_type == 1:
