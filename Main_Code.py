@@ -30,13 +30,36 @@ def call_simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, st
 
 def sim_callback():
     ctx = mp.get_context("spawn")
+    # Setting Init Type Conditions for the GUI
+    temp = dpg.get_value("init_type")
+    if temp == "1D problem":
+        temp_2 = 1
+    elif temp =="Middle Patch":
+        temp_2 = 2
+    elif temp =="Side Patch":
+        temp_2 = 3
+    elif temp =="Engineering Simulation":
+        temp_2 = 4
+    print(str(dpg.get_value("init_type")))
+    # Setting Visual Type Conditions
+    viz_temp = dpg.get_value("viz_type")
+    if viz_temp == "Particles":
+        viz_temp_2 = 1
+    elif viz_temp == "Concentration Field":
+        viz_temp_2 = 2
+    vel_temp = dpg.get_value("use_vel")
+    if vel_temp == "True":
+        vel_temp_2 = 1
+    elif vel_temp == "False":
+        vel_temp_2 = 0
+    # Setting values for the simulation to call 
     p = ctx.Process(target=call_simulation, args=(
         dpg.get_value("path"), dpg.get_value("min_x"),
         dpg.get_value("max_x"), dpg.get_value("min_y"),
         dpg.get_value("max_y"), float(dpg.get_value("time")),
         float(dpg.get_value("step_size")), dpg.get_value("num_particles"),
         float(dpg.get_value("diff")), dpg.get_value("euler_x"), dpg.get_value("euler_y"),
-        dpg.get_value("init_type"), dpg.get_value("viz_type"), dpg.get_value("use_vel")))
+        temp_2, viz_temp_2, vel_temp_2))
     p.start()
 
 
@@ -60,14 +83,12 @@ with dpg.window(label="Parameters", width=800):
     dpg.add_input_int(tag="num_particles", default_value=100000, label="linear")  # dpg.add_drag_int for a slider
     dpg.add_text("Diffusivity")
     dpg.add_input_text(tag="diff", default_value=0.01, decimal=True)
-    dpg.add_text("Init Type: 1 for 1D problem (overrides y_min, y_max, Ny, D, t_max and use_vel), 2 for middle patch,")
-    dpg.add_text("3 for side patch, 4 for engineering simulation (overrides nearly all variables")
-    dpg.add_input_int(tag="init_type", default_value=3, label=" Initial Cond.")
-    dpg.add_text("Vis Type: 1 for particles, 2 for Concentration field")
-    dpg.add_input_int(tag="viz_type", default_value=2, label=" Vis. Display ")
-    dpg.add_text("Vel Type: 0 for No velocity field, 1 for the previously defined velocity field")
-    dpg.add_input_int(tag="use_vel", default_value=1, label=" Vel. Field Conditions")  # (change this to be a true and false button maybe?)
-    dpg.add_text("Done?")
+    dpg.add_text("Init Type:")
+    dpg.add_radio_button(tag="init_type", items=("1D problem", "Middle Patch", "Side Patch", "Engineering Simulation"), default_value=1, label= " Initial Cond.", horizontal= True)
+    dpg.add_text("Vis Type:")
+    dpg.add_radio_button(tag="viz_type",items=("Particles", "Concentration Field"), default_value=2, label=" Vis. Display ", horizontal = True)
+    dpg.add_text("Vel Type: True for Velocity field to be one, False for off")
+    dpg.add_radio_button(tag="use_vel", items=("True", "False"), default_value=1, label=" Vel. Field Conditions", horizontal= True)  # (change this to be a true and false button maybe?)
     dpg.add_button(label="Run Simulation", callback=sim_callback)
 
 
@@ -82,6 +103,7 @@ class Simulation:
         """
         Init class.
         """
+        print(str(init_type))
         self.debug = False
         self.velocity_field = velocity_field
         self.x_min = x_min
@@ -111,8 +133,7 @@ class Simulation:
         self.maxdist = np.sqrt(self.x_posres ** 2 + self.y_posres ** 2)  # maximum allowable distance for a particle to be from a vel coord
         self.x = np.random.uniform(self.x_min, self.x_max, size=self.N)  # initial x-positions
         self.y = np.random.uniform(self.y_min, self.y_max, size=self.N)  # initial y-positions
-
-    def get_initial_values(self, init_type):
+        print(type(init_type))
         if init_type == 1:
             self.phi = np.where(self.x <= 0, self.ones, self.zeros)
             self.y_min = -0.001
@@ -121,7 +142,7 @@ class Simulation:
             self.D = 0.1
             self.use_vel = 0
             self.t_max = 0.2
-
+    
         elif init_type == 2:
             self.phi = np.where(np.sqrt(self.x ** 2 + self.y ** 2) < 0.3, self.ones, self.zeros)
             self.cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
@@ -213,7 +234,7 @@ class Simulation:
 
         print("[" + mp.current_process().name + "] Simulation running...")
 
-        self.get_initial_values(init_type)
+
 
         if self.init_type != 1:
             self.visualize(init_type, viz_type)
