@@ -118,7 +118,7 @@ class Simulation:
         """
         Init class.
         """
-        print(str(init_type))
+        
         self.debug = False
         self.velocity_field = velocity_field
         self.x_min = x_min
@@ -148,7 +148,7 @@ class Simulation:
         self.maxdist = np.sqrt(self.x_posres ** 2 + self.y_posres ** 2)  # maximum allowable distance for a particle to be from a vel coord
         self.x = np.random.uniform(self.x_min, self.x_max, size=self.N)  # initial x-positions
         self.y = np.random.uniform(self.y_min, self.y_max, size=self.N)  # initial y-positions
-        print(type(init_type))
+        
         if init_type == 1:
             self.phi = np.where(self.x <= 0, self.ones, self.zeros)
             self.y_min = -0.001
