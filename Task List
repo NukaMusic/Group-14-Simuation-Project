@@ -2,5 +2,4 @@
     - roughly 2^17 points needed for 64x64 grid to run without problems. 2^16 can also work but is prone to breaking.
     from here they follow a patterns of roughly being able to double points while doubling area i.e. 128x128 with 2^18 points, but at some points you need to more than double.
 Add error analysis (All of task B)
-Perform Engineering simulation once full code is done
   sub prio. (Possibly animate again for the lulz)
