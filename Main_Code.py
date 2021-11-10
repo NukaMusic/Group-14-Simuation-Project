@@ -32,7 +32,7 @@ def sim_callback():
     ctx = mp.get_context("spawn")
     # Setting Init Type Conditions for the GUI
     temp = dpg.get_value("init_type")
-    temp_2 = 0
+    temp_2 = 1
     if temp == "1D problem":
         temp_2 = 1
     elif temp =="Middle Patch":
@@ -44,7 +44,7 @@ def sim_callback():
     
     # Setting Visual Type Conditions
     viz_temp = dpg.get_value("viz_type")
-    viz_temp_2 = 0
+    viz_temp_2 = 2
     if viz_temp == "Particles":
         viz_temp_2 = 1
     elif viz_temp == "Concentration Field":
@@ -52,7 +52,7 @@ def sim_callback():
         
     # Setting Velocity Field Conditions    
     vel_temp = dpg.get_value("use_vel")
-    vel_temp_2 = -1
+    vel_temp_2 = 1
     if vel_temp == "True":
         vel_temp_2 = 1
     elif vel_temp == "False":
@@ -100,7 +100,7 @@ with dpg.window(label="Parameters", width=800):
     dpg.add_radio_button(tag="init_type", items=("1D problem", "Middle Patch", "Side Patch", "Engineering Simulation"), default_value=1, label= " Initial Cond.", horizontal= True)
    
     dpg.add_text("Vis Type:")
-    dpg.add_radio_button(tag="viz_type",items=("Particles", "Concentration Field"), default_value=2, label=" Vis. Display ", horizontal = True)
+    dpg.add_radio_button(tag="viz_type",items=("Concentration Field", "Particles"), default_value=2, label=" Vis. Display ", horizontal = True)
    
     dpg.add_text("Vel Type: True for Velocity field to be one, False for off")
     dpg.add_radio_button(tag="use_vel", items=("True", "False"), default_value=1, label=" Vel. Field Conditions", horizontal= True)  # (change this to be a true and false button maybe?)
@@ -118,7 +118,7 @@ class Simulation:
         """
         Init class.
         """
-        
+      
         self.debug = False
         self.velocity_field = velocity_field
         self.x_min = x_min
