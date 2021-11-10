@@ -32,6 +32,7 @@ def sim_callback():
     ctx = mp.get_context("spawn")
     # Setting Init Type Conditions for the GUI
     temp = dpg.get_value("init_type")
+    temp_2 = 0
     if temp == "1D problem":
         temp_2 = 1
     elif temp =="Middle Patch":
@@ -40,14 +41,18 @@ def sim_callback():
         temp_2 = 3
     elif temp =="Engineering Simulation":
         temp_2 = 4
-    print(str(dpg.get_value("init_type")))
+    
     # Setting Visual Type Conditions
     viz_temp = dpg.get_value("viz_type")
+    viz_temp_2 = 0
     if viz_temp == "Particles":
         viz_temp_2 = 1
     elif viz_temp == "Concentration Field":
         viz_temp_2 = 2
+        
+    # Setting Velocity Field Conditions    
     vel_temp = dpg.get_value("use_vel")
+    vel_temp_2 = -1
     if vel_temp == "True":
         vel_temp_2 = 1
     elif vel_temp == "False":
@@ -65,28 +70,38 @@ def sim_callback():
 
 # Creating Labels for the Input Parameters
 with dpg.window(label="Parameters", width=800):
+   
     dpg.add_text("File name of velocity field")
     dpg.add_input_text(tag="path", default_value="velocityCMM3.dat", label=" (.dat)")
+   
     dpg.add_text("Domain")
     dpg.add_input_int(tag="min_x", default_value=-1, label=" (min. x)")
     dpg.add_input_int(tag="max_x", default_value=1, label=" (max. x)")
     dpg.add_input_int(tag="min_y", default_value=-1, label=" (min. y)")
     dpg.add_input_int(tag="max_y", default_value=1, label=" (max. y)")
+    
     dpg.add_text("Euler Grid Size")
     dpg.add_input_int(tag="euler_x", default_value=16, label=" (x)")
     dpg.add_input_int(tag="euler_y", default_value=16, label=" (y)")
+    
     dpg.add_text("Simulated time")
     dpg.add_input_text(tag="time", decimal=True, default_value=0.2, label=" second(s)")
+    
     dpg.add_text("Step Size")
     dpg.add_input_text(tag="step_size", decimal=True, default_value=0.0005)
+    
     dpg.add_text("# of Particles")
     dpg.add_input_int(tag="num_particles", default_value=100000, label="linear")  # dpg.add_drag_int for a slider
+   
     dpg.add_text("Diffusivity")
     dpg.add_input_text(tag="diff", default_value=0.01, decimal=True)
+    
     dpg.add_text("Init Type:")
     dpg.add_radio_button(tag="init_type", items=("1D problem", "Middle Patch", "Side Patch", "Engineering Simulation"), default_value=1, label= " Initial Cond.", horizontal= True)
+   
     dpg.add_text("Vis Type:")
     dpg.add_radio_button(tag="viz_type",items=("Particles", "Concentration Field"), default_value=2, label=" Vis. Display ", horizontal = True)
+   
     dpg.add_text("Vel Type: True for Velocity field to be one, False for off")
     dpg.add_radio_button(tag="use_vel", items=("True", "False"), default_value=1, label=" Vel. Field Conditions", horizontal= True)  # (change this to be a true and false button maybe?)
     dpg.add_button(label="Run Simulation", callback=sim_callback)
@@ -171,6 +186,7 @@ class Simulation:
             self.zeros = np.zeros(self.N)  # Array of zeros for where function
             self.phi = np.where(np.sqrt((self.x - 0.4) ** 2 + (self.y - 0.4) ** 2) < 0.1, self.ones, self.zeros)
 
+
     # Create a mesh and find the average phi values within it
     def getavrphimesh(self):
         x_gran = np.round((self.x - self.x_min) / (self.x_max - self.x_min) * (self.Nx - 1)).astype(int)  # figures out which grid square (granular
@@ -193,10 +209,10 @@ class Simulation:
     def visualize(self, init_type, viz_type):
 
         if init_type == 1:
-            self.avphi = self.getavrphimesh()
+            avphi = self.getavrphimesh()
             plt.plot(self.oneD_ref[:, 0], self.oneD_ref[:, 1], color='r')
-            plt.scatter(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], s=15, marker='.', color='b')
-            plt.plot(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], color='b')
+            plt.scatter(np.linspace(self.x_min, self.x_max, self.Nx), avphi[0], s=15, marker='.', color='b')
+            plt.plot(np.linspace(self.x_min, self.x_max, self.Nx), avphi[0], color='b')
             plt.legend(['Reference Solution', 'Simulation'], loc='upper right')
             plt.title('1D Particle Distribution', fontdict=None, loc='center', pad=None)  # Plot Titles
             plt.xlabel('x')
@@ -207,22 +223,19 @@ class Simulation:
             if viz_type == 1:
                 col = np.where(self.phi == 1, self.blue, self.red)  # create array of colours for each point
                 plt.scatter(self.x, self.y, color=col, s=0.1)
-                plt.title('2D Particle Location Visualisation at ' + str(round(self.t / self.dt) * self.dt) + 's', fontdict=None,
+                plt.title('2D Particle Location Visualisation at ' + str(round(self.t / self.dt) * self.dt) + ' s', fontdict=None,
                           loc='center', pad=20)  # Plot Titles
                 plt.xlabel('x')
                 plt.ylabel('y')
                 plt.show()
 
             if viz_type == 2:
-                if self.init_type != 4:
-                    self.avphi = self.getavrphimesh()
-                if self.init_type == 4 and self.t == 0:
-                    self.avphi = self.getavrphimesh()
-                plt.imshow(self.avphi, interpolation='nearest', cmap=self.cmap,
+                avphi = self.getavrphimesh()
+                plt.imshow(avphi, interpolation='nearest', cmap=self.cmap,
                            extent=(self.x_min, self.x_max, self.y_min,
                                    self.y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
                 plt.colorbar(label='Concentration, ϕ')  # colour map legend
-                plt.title('2D Particle Concentration Representation at ' + str(round(self.t / self.dt) * self.dt) + 's',
+                plt.title('2D Particle Concentration Representation at ' + str(round(self.t / self.dt) * self.dt) + ' s',
                           fontdict=None, loc='center', pad=20)  # Plot Titles
                 plt.xlabel('x')
                 plt.ylabel('y')
@@ -255,11 +268,6 @@ class Simulation:
             self.y = np.where(self.y > self.y_max, 2 * self.y_max - self.y, self.y)  # far as it went beyond the wall
             self.y = np.where(self.y < self.y_min, 2 * self.y_min - self.y, self.y)
             self.t += self.dt  # t for titles
-            if self.init_type == 4:
-                if self.t == 0:
-                    self.avphi = self.getavrphimesh()
-                self.avphi = np.where(self.avphi != 1, self.getavrphimesh(), self.avphi)
-                self.avphi = np.where(self.avphi >= 0.3, np.ones((self.Nx, self.Ny)), self.avphi)
             if self.init_type != 1:
                 if round(self.t % 0.05, 6) == 0:
                     self.visualize(init_type, viz_type)
