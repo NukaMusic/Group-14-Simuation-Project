@@ -237,8 +237,8 @@ class Simulation:
             if self.init_type == 4:
                 if self.t == 0:
                     self.avphi = self.getavrphimesh()
-                averphi = self.getavrphimesh()
-                self.avphi = np.where(averphi >= 0.3, np.ones((self.Nx, self.Ny)), self.avphi)
+                self.avphi = np.where(self.avphi != 1, self.getavrphimesh(), self.avphi)
+                self.avphi = np.where(self.avphi >= 0.3, np.ones((self.Nx, self.Ny)), self.avphi)
             if self.init_type != 1:
                 if round(self.t % 0.05, 6) == 0:
                     self.visualize(init_type, viz_type)
