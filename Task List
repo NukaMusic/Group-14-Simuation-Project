@@ -1,7 +1,3 @@
   sub prio. (figure out relationship between minimum amount of points and maximum concentration grid size?)
-Pretty up plots with titles etc.
-Done, but maybe JSON instead? (Create import file and import it)
-  sub prio. (Possibly other more fancy GUI if time is found)
 Add error analysis (All of task B)
-Perform Engineering simulation once full code is done
   sub prio. (Possibly animate again for the lulz)
