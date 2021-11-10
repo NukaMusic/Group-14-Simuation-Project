@@ -237,7 +237,10 @@ class Simulation:
                 plt.imshow(self.avphi, interpolation='nearest', cmap=self.cmap,
                            extent=(self.x_min, self.x_max, self.y_min,
                                    self.y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
-                plt.colorbar(label='Concentration, ϕ')  # colour map legend
+                if self.init_type != 4:
+                    plt.colorbar(label='Concentration, ϕ')  # colour map legend
+                if self.init_type == 4:
+                    plt.colorbar(label='Largest value concentration has been, ϕ')  # colour map legend
                 plt.title('2D Particle Concentration Representation at ' + str(round(self.t / self.dt) * self.dt) + ' s',
                           fontdict=None, loc='center', pad=20)  # Plot Titles
                 plt.xlabel('x')
@@ -277,7 +280,7 @@ class Simulation:
                 if round(self.t % 0.05, 6) == 0:
                     self.visualize(init_type, viz_type)
             if self.init_type == 4:
-                self.avphi = np.where(self.avphi != 1, self.getavrphimesh(), self.avphi)
+                self.avphi = np.where(self.avphi > self.getavrphimesh(), self.avphi,  self.getavrphimesh())
                 self.avphi = np.where(self.avphi >= 0.3, np.ones((self.Nx, self.Ny)), self.avphi)
         if self.init_type == 1:
             self.visualize(init_type, viz_type)
