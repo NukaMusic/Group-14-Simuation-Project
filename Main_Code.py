@@ -81,8 +81,8 @@ with dpg.window(label="Parameters", width=800):
     dpg.add_input_int(tag="max_y", default_value=1, label=" (max. y)")
     
     dpg.add_text("Euler Grid Size")
-    dpg.add_input_int(tag="euler_x", default_value=16, label=" (x)")
-    dpg.add_input_int(tag="euler_y", default_value=16, label=" (y)")
+    dpg.add_input_int(tag="euler_x", default_value=64, label=" (x)")
+    dpg.add_input_int(tag="euler_y", default_value=64, label=" (y)")
     
     dpg.add_text("Simulated time")
     dpg.add_input_text(tag="time", decimal=True, default_value=0.2, label=" second(s)")
@@ -91,7 +91,7 @@ with dpg.window(label="Parameters", width=800):
     dpg.add_input_text(tag="step_size", decimal=True, default_value=0.0005)
     
     dpg.add_text("# of Particles")
-    dpg.add_input_int(tag="num_particles", default_value=100000, label="linear")  # dpg.add_drag_int for a slider
+    dpg.add_input_int(tag="num_particles", default_value=175000, label="linear")  # dpg.add_drag_int for a slider
    
     dpg.add_text("Diffusivity")
     dpg.add_input_text(tag="diff", default_value=0.01, decimal=True)
@@ -161,11 +161,11 @@ class Simulation:
         elif init_type == 2:
             self.phi = np.where(np.sqrt(self.x ** 2 + self.y ** 2) < 0.3, self.ones, self.zeros)
             self.cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                                ['r', 'lime', 'b'])  # colormap for graphing
+                                                                ['r', 'orchid', 'lime', 'b'])  # colormap for graphing
         elif init_type == 3:
             self.phi = np.where(self.x < 0, self.ones, self.zeros)
             self.cmap = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                                ['r', 'lime', 'b'])  # colormap for graphing
+                                                                ['r', 'orchid', 'lime', 'b'])  # colormap for graphing
         elif init_type == 4:
             self.D = 0.1
             self.x_min = -1
@@ -173,12 +173,12 @@ class Simulation:
             self.y_min = -1
             self.y_max = 1
             self.Nx = self.Ny = 64
-            self.N = 150000
+            self.N = 175000
             self.use_vel = 1
             self.cmap = mpl.colors.LinearSegmentedColormap.from_list('eng_colmap', [(0, 'r'), (0.29999, 'lime'),
                                                                     (0.3, 'b'), (1, 'b')])
                                                                     # colormap for engineering simulation
-            self.t_max = 10
+            self.t_max = 1
             self.viz_type = 2
             self.x = np.random.uniform(self.x_min, self.x_max, size=self.N)  # initial x-positions
             self.y = np.random.uniform(self.y_min, self.y_max, size=self.N)  # initial y-positions
