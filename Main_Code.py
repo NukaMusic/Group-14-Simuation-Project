@@ -120,7 +120,7 @@ class Simulation:
         Init class.
         """
       
-        self.debug = False
+        self.debug = True
         self.velocity_field = velocity_field
         self.x_min = x_min
         self.x_max = x_max
@@ -272,7 +272,7 @@ class Simulation:
                 if self.init_type != 4:
                     plt.colorbar(label='Concentration, ϕ')  # colour map legend
                 if self.init_type == 4:
-                    plt.colorbar(label='Largest value concentration has been, ϕ')  # colour map legend
+                    plt.colorbar(label='Largest concentration reached, ϕ')  # colour map legend
                 plt.title('2D Particle Concentration Representation at ' + str(round(self.t / self.dt) * self.dt) + ' s',
                           fontdict=None, loc='center', pad=20)  # Plot Titles
                 plt.xlabel('x')
@@ -296,10 +296,10 @@ class Simulation:
         for _ in np.arange(0, self.t_max, self.dt):
             if self.use_vel == 1:
                 v_x, v_y = self.get_velocities()
-                self.x += v_x * self.dt
-                self.y += v_y * self.dt
-            self.x += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Lagrange Diffusion and advection
-            self.y += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Lagrange Diffusion and advection
+                self.x += v_x * self.dt  # Advection
+                self.y += v_y * self.dt  # Advection
+            self.x += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Diffusion
+            self.y += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Diffusion
             # Walls
             self.x = np.where(self.x > self.x_max, 2 * self.x_max - self.x, self.x)  # if point is beyond wall, update
             self.x = np.where(self.x < self.x_min, 2 * self.x_min - self.x, self.x)  # position to bounce off wall as
@@ -314,6 +314,7 @@ class Simulation:
             if self.init_type == 4:
                 self.avphi = np.where(self.avphi > self.getavrphimesh(), self.avphi,  self.getavrphimesh())
                 self.avphi = np.where(self.avphi >= 0.3, np.ones((self.Nx, self.Ny)), self.avphi)
+
         if self.init_type == 1:
             self.visualize(init_type, viz_type)
 
