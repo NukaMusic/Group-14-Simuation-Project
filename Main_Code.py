@@ -11,6 +11,7 @@ Oscar Jiang
 import numpy as np
 from scipy import spatial
 from scipy.interpolate import interp1d
+import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import time  # for debugging and optimization
@@ -232,7 +233,8 @@ class Simulation:
             # item = y value for predicted
             lined_up_y.append(ref_func(item))
           
-        RMSE = np.square(np.subtract(lined_up_y, avr_y)).mean()
+        MSE = np.square(np.subtract(lined_up_y, avr_y)).mean()
+        RMSE = math.sqrt(MSE)
         return RMSE
     
     # Visualize the data
