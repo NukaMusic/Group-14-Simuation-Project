@@ -10,6 +10,7 @@ Oscar Jiang
 
 import numpy as np
 from scipy import spatial
+from scipy.interpolate import interp1d
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import time  # for debugging and optimization
@@ -204,16 +205,47 @@ class Simulation:
         x_velocities = np.where(distance > self.maxdist, self.zeros, x_velocities)
         y_velocities = np.where(distance > self.maxdist, self.zeros, y_velocities)
         return x_velocities, y_velocities
-
+    
+    def error_analysis(self):
+        temp = open("reference_solution_1D.dat", "r")
+        ref_y = []
+        ref_x = []
+        lined_up_y = []
+        avr_x = np.linspace(self.x_min, self.x_max, self.Nx)
+        avr_y = self.getavrphimesh()[0]
+    
+        # loop through ref sol, generate ref arrays
+        i=0
+        for line in temp:
+            for number in line.split():
+                if i == 0:              
+                    ref_x.append(float(number))
+                    i += 1
+                else:
+                    ref_y.append(float(number))
+                    i =0
+        
+        # interpolate a function for the ref array
+        ref_func = interp1d(ref_x, ref_y, "linear", fill_value="extrapolate")
+        
+        for item in avr_x:
+            # item = y value for predicted
+            lined_up_y.append(ref_func(item))
+          
+        RMSE = np.square(np.subtract(lined_up_y, avr_y)).mean()
+        return RMSE
+    
     # Visualize the data
     def visualize(self, init_type, viz_type):
 
         if init_type == 1:
             self.avphi = self.getavrphimesh()
+            self.RMSE = self.error_analysis()
+            print(self.error_analysis())
             plt.plot(self.oneD_ref[:, 0], self.oneD_ref[:, 1], color='r')
             plt.scatter(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], s=15, marker='.', color='b')
             plt.plot(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], color='b')
-            plt.legend(['Reference Solution', 'Simulation'], loc='upper right')
+            plt.legend(['Reference Solution', 'Simulation', 'RMSE =', self.RMSE], loc='upper right')
             plt.title('1D Particle Distribution', fontdict=None, loc='center', pad=None)  # Plot Titles
             plt.xlabel('x')
             plt.ylabel('Concentration, ϕ ')
