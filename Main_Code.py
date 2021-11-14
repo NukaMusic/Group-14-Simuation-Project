@@ -245,7 +245,7 @@ class Simulation:
             plt.plot(self.oneD_ref[:, 0], self.oneD_ref[:, 1], color='r')
             plt.scatter(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], s=15, marker='.', color='b')
             plt.plot(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], color='b')
-            plt.legend(['Reference Solution', 'Simulation', 'RMSE =', self.RMSE], loc='upper right')
+            plt.legend(['Reference Solution', 'Simulation', "RMSE = {:e}".format(self.RMSE)], loc='upper right')
             plt.title('1D Particle Distribution', fontdict=None, loc='center', pad=None)  # Plot Titles
             plt.xlabel('x')
             plt.ylabel('Concentration, ϕ ')
