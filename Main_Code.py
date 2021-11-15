@@ -206,7 +206,31 @@ class Simulation:
         x_velocities = np.where(distance > self.maxdist, self.zeros, x_velocities)
         y_velocities = np.where(distance > self.maxdist, self.zeros, y_velocities)
         return x_velocities, y_velocities
-    
+
+    def do_math(self):
+        for _ in np.arange(0, self.t_max, self.dt):
+            if self.use_vel == 1:
+                v_x, v_y = self.get_velocities()
+                self.x += v_x * self.dt  # Advection
+                self.y += v_y * self.dt  # Advection
+            self.x += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Diffusion
+            self.y += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Diffusion
+            # Walls
+            self.x = np.where(self.x > self.x_max, 2 * self.x_max - self.x, self.x)  # if point is beyond wall, update
+            self.x = np.where(self.x < self.x_min, 2 * self.x_min - self.x, self.x)  # position to bounce off wall as
+            self.y = np.where(self.y > self.y_max, 2 * self.y_max - self.y, self.y)  # far as it went beyond the wall
+            self.y = np.where(self.y < self.y_min, 2 * self.y_min - self.y, self.y)
+            if self.t == 0:
+                self.avphi = self.getavrphimesh()
+            self.t += self.dt  # t for titles
+            if self.init_type != 1:
+                if round(self.t % 0.05, 6) == 0:
+                    self.visualize(self.init_type, self.viz_type)
+            if self.init_type == 4:
+                self.avphi = np.where(self.avphi > self.getavrphimesh(), self.avphi,  self.getavrphimesh())
+                self.avphi = np.where(self.avphi >= 0.3, np.ones((self.Nx, self.Ny)), self.avphi)
+        return self.x, self.y, self.avphi
+
     def error_analysis(self):
         temp = open("reference_solution_1D.dat", "r")
         ref_y = []
@@ -287,35 +311,13 @@ class Simulation:
 
         print("[" + mp.current_process().name + "] Simulation running...")
 
-
-
         if self.init_type != 1:
             self.visualize(init_type, viz_type)
 
         if self.debug:
             print(time.time() - starttime)
 
-        for _ in np.arange(0, self.t_max, self.dt):
-            if self.use_vel == 1:
-                v_x, v_y = self.get_velocities()
-                self.x += v_x * self.dt  # Advection
-                self.y += v_y * self.dt  # Advection
-            self.x += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Diffusion
-            self.y += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Diffusion
-            # Walls
-            self.x = np.where(self.x > self.x_max, 2 * self.x_max - self.x, self.x)  # if point is beyond wall, update
-            self.x = np.where(self.x < self.x_min, 2 * self.x_min - self.x, self.x)  # position to bounce off wall as
-            self.y = np.where(self.y > self.y_max, 2 * self.y_max - self.y, self.y)  # far as it went beyond the wall
-            self.y = np.where(self.y < self.y_min, 2 * self.y_min - self.y, self.y)
-            if self.t == 0:
-                self.avphi = self.getavrphimesh()
-            self.t += self.dt  # t for titles
-            if self.init_type != 1:
-                if round(self.t % 0.05, 6) == 0:
-                    self.visualize(init_type, viz_type)
-            if self.init_type == 4:
-                self.avphi = np.where(self.avphi > self.getavrphimesh(), self.avphi,  self.getavrphimesh())
-                self.avphi = np.where(self.avphi >= 0.3, np.ones((self.Nx, self.Ny)), self.avphi)
+        self.x, self.y, self.avphi = self.do_math()
 
         if self.init_type == 1:
             self.visualize(init_type, viz_type)
