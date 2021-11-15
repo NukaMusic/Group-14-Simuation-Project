@@ -281,27 +281,15 @@ class Simulation:
                 plt.ylabel('y')
                 plt.show()  # plot it!
 
-    def start_simulation(self, init_type, viz_type):
-
-        starttime = time.time()
-
-        print("[" + mp.current_process().name + "] Simulation running...")
-
-
-
-        if self.init_type != 1:
-            self.visualize(init_type, viz_type)
-
-        if self.debug:
-            print(time.time() - starttime)
-
-        for _ in np.arange(0, self.t_max, self.dt):
+    def do_math(self, h):
+        for _ in np.arange(0, self.t_max, h):
             if self.use_vel == 1:
                 v_x, v_y = self.get_velocities()
-                self.x += v_x * self.dt  # Advection
-                self.y += v_y * self.dt  # Advection
-            self.x += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Diffusion
-            self.y += np.sqrt(2 * self.D * self.dt) * np.random.normal(0, 1, size=self.N)  # Diffusion
+                self.x += v_x * h
+                self.y += v_y * h
+            self.x += np.sqrt(2 * self.D * h) * np.random.normal(0, 1, size=self.N)  # Lagrange Diffusion and advection
+            self.y += np.sqrt(2 * self.D * h) * np.random.normal(0, 1, size=self.N)  # Lagrange Diffusion and advection
+
             # Walls
             self.x = np.where(self.x > self.x_max, 2 * self.x_max - self.x, self.x)  # if point is beyond wall, update
             self.x = np.where(self.x < self.x_min, 2 * self.x_min - self.x, self.x)  # position to bounce off wall as
@@ -312,10 +300,22 @@ class Simulation:
             self.t += self.dt  # t for titles
             if self.init_type != 1:
                 if round(self.t % 0.05, 6) == 0:
-                    self.visualize(init_type, viz_type)
+                    self.visualize(self.init_type, self.viz_type)
             if self.init_type == 4:
                 self.avphi = np.where(self.avphi > self.getavrphimesh(), self.avphi,  self.getavrphimesh())
                 self.avphi = np.where(self.avphi >= 0.3, np.ones((self.Nx, self.Ny)), self.avphi)
+        return self.x, self.y
+
+    def start_simulation(self, init_type, viz_type):
+
+        starttime = time.time()
+
+        print("[" + mp.current_process().name + "] Simulation running...")
+
+        if self.init_type != 1:
+            self.visualize(init_type, viz_type)
+        
+        self.x, self.y = self.do_math(self, self.dt)
 
         if self.init_type == 1:
             self.visualize(init_type, viz_type)
