@@ -232,24 +232,14 @@ class Simulation:
         return self.x, self.y, self.avphi
 
     def error_analysis(self):
-        temp = open("reference_solution_1D.dat", "r")
-        ref_y = []
-        ref_x = []
+        
+        #temp = open("reference_solution_1D.dat", "r")
+        ref_y = self.oneD_ref[:, 1]
+        ref_x = self.oneD_ref[:, 0]
         lined_up_y = []
         avr_x = np.linspace(self.x_min, self.x_max, self.Nx)
         avr_y = self.getavrphimesh()[0]
     
-        # loop through ref sol, generate ref arrays
-        i=0
-        for line in temp:
-            for number in line.split():
-                if i == 0:              
-                    ref_x.append(float(number))
-                    i += 1
-                else:
-                    ref_y.append(float(number))
-                    i =0
-        
         # interpolate a function for the ref array
         ref_func = interp1d(ref_x, ref_y, "linear", fill_value="extrapolate")
         
