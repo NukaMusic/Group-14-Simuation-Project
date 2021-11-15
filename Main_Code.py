@@ -233,7 +233,7 @@ class Simulation:
 
     def error_analysis(self):
         
-        
+        # Parameter and array set up for RMSE analysis
         ref_y = self.oneD_ref[:, 1]
         ref_x = self.oneD_ref[:, 0]
         lined_up_y = []
