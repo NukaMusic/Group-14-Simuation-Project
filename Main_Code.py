@@ -327,7 +327,6 @@ class Simulation:
 
         print("[" + mp.current_process().name + "] Simulation done.")
 
-
 # Prevents the Child program from relaunching the GUI
 if mp.current_process().name == 'MainProcess':
     dpg.show_viewport()
