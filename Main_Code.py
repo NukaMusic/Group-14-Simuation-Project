@@ -233,7 +233,7 @@ class Simulation:
 
     def error_analysis(self):
         
-        #temp = open("reference_solution_1D.dat", "r")
+        
         ref_y = self.oneD_ref[:, 1]
         ref_x = self.oneD_ref[:, 0]
         lined_up_y = []
