@@ -10,7 +10,7 @@ Oscar Jiang
 
 import numpy as np
 from scipy import spatial
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d 
 import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -18,6 +18,7 @@ import time  # for debugging and optimization
 import multiprocessing as mp
 import dearpygui.dearpygui as dpg
 
+#Initialises GUI Library
 dpg.create_context()
 dpg.create_viewport(title="Simulation", width=820, height=690)
 dpg.setup_dearpygui()
@@ -25,6 +26,7 @@ dpg.setup_dearpygui()
 
 def call_simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, step_size, num_particles, diff, init_type,
                     viz_type, use_vel):
+    #Imports Gui Input Values
     temp = Simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, step_size, num_particles, diff,
                       init_type, viz_type, use_vel)
     temp.start_simulation(init_type, viz_type)
@@ -32,6 +34,7 @@ def call_simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, st
 
 def sim_callback():
     ctx = mp.get_context("spawn")
+    
     # Setting Init Type Conditions for the GUI
     temp = dpg.get_value("init_type")
     temp_2 = 1
@@ -59,6 +62,7 @@ def sim_callback():
         vel_temp_2 = 1
     elif vel_temp == "False":
         vel_temp_2 = 0
+        
     # Setting values for the simulation to call 
     p = ctx.Process(target=call_simulation, args=(
         dpg.get_value("path"), dpg.get_value("min_x"),
@@ -70,11 +74,11 @@ def sim_callback():
     p.start()
 
 
-# Creating Labels for the Input Parameters
+# Creating Labels and Input Fields for the Input Parameters
 with dpg.window(label="Parameters", width=800):
    
-    dpg.add_text("File name of velocity field")
-    dpg.add_input_text(tag="path", default_value="velocityCMM3.dat", label=" (.dat)")
+    dpg.add_text("File name of velocity field") #Creates a text field
+    dpg.add_input_text(tag="path", default_value="velocityCMM3.dat", label=" (.dat)") #Creates an Input Field
    
     dpg.add_text("Domain")
     dpg.add_input_int(tag="min_x", default_value=-1, label=" (min. x)")
@@ -111,9 +115,7 @@ with dpg.window(label="Parameters", width=800):
 
 class Simulation:
     """
-        Runs simulation.
-
-        velocity_field: Path to data.
+        Class for creating the simulation
     """
 
     def __init__(self, velocity_field, x_min, x_max, y_min, y_max, t_max, dt, N, D, Nx, Ny, init_type, viz_type, use_vel):
@@ -182,10 +184,10 @@ class Simulation:
                                                                     # colormap for engineering simulation
             self.t_max = 1
             self.viz_type = 2
-            self.x = np.random.uniform(self.x_min, self.x_max, size=self.N)  # initial x-positions
-            self.y = np.random.uniform(self.y_min, self.y_max, size=self.N)  # initial y-positions
-            self.ones = np.ones(self.N)  # Array of ones for where function
-            self.zeros = np.zeros(self.N)  # Array of zeros for where function
+            self.x = np.random.uniform(self.x_min, self.x_max, size=self.N)  # Reinitialises x-positions
+            self.y = np.random.uniform(self.y_min, self.y_max, size=self.N)  # Reinitialises y-positions
+            self.ones = np.ones(self.N)  # Reinitialises array of ones for where function
+            self.zeros = np.zeros(self.N)  # Reinitialises  array of zeros for where function
             self.phi = np.where(np.sqrt((self.x - 0.4) ** 2 + (self.y - 0.4) ** 2) < 0.1, self.ones, self.zeros)
 
 
@@ -194,22 +196,25 @@ class Simulation:
         x_gran = np.round((self.x - self.x_min) / (self.x_max - self.x_min) * (self.Nx - 1)).astype(int)  # figures out which grid square (granular
         y_gran = np.round((self.y - self.y_min) / (self.y_max - self.y_min) * (self.Ny - 1)).astype(int)  # coordinate) each point fits into
         grancoord = np.column_stack((x_gran, y_gran))  # array of each point's granular coordinate
-        unq, ids, count = np.unique(grancoord, return_inverse=True, return_counts=True, axis=0)
-        avrphi = np.bincount(ids, self.phi) / count
-        avrphi = np.rot90(np.reshape(avrphi, [self.Nx, self.Ny]))
+        # Groups granular coordinates and finds their phi values
+        unq, ids, count = np.unique(grancoord, return_inverse=True, return_counts=True, axis=0)  
+        avrphi = np.bincount(ids, self.phi) / count # Finds average phi for each granular coordinate
+        avrphi = np.rot90(np.reshape(avrphi, [self.Nx, self.Ny])) # Reshapes average phi into usable array
         return avrphi
 
     def get_velocities(self):  # given a coordinate, tells us what nearest velocity vector is
+        # Finds closest velocity field value to each particle
         distance, index = spatial.cKDTree(self.pos).query(np.column_stack((self.x, self.y)), workers=-1)
-        x_velocities = self.vel[index][:, 0]
-        y_velocities = self.vel[index][:, 1]
-        x_velocities = np.where(distance > self.maxdist, self.zeros, x_velocities)
+        x_velocities = self.vel[index][:, 0] #Finds x velocities for each particle
+        y_velocities = self.vel[index][:, 1] #Finds y velocities for each particle
+        # Set velocity to zero if too far from a point on the velocity field
+        x_velocities = np.where(distance > self.maxdist, self.zeros, x_velocities) 
         y_velocities = np.where(distance > self.maxdist, self.zeros, y_velocities)
         return x_velocities, y_velocities
 
-    def do_math(self):
-        for _ in np.arange(0, self.t_max, self.dt):
-            if self.use_vel == 1:
+    def do_math(self): #Solve advection and diffusion of the particles
+        for _ in np.arange(0, self.t_max, self.dt):# Iterate
+            if self.use_vel == 1: # Solve with velocities if desired
                 v_x, v_y = self.get_velocities()
                 self.x += v_x * self.dt  # Advection
                 self.y += v_y * self.dt  # Advection
@@ -221,13 +226,13 @@ class Simulation:
             self.y = np.where(self.y > self.y_max, 2 * self.y_max - self.y, self.y)  # far as it went beyond the wall
             self.y = np.where(self.y < self.y_min, 2 * self.y_min - self.y, self.y)
             if self.t == 0:
-                self.avphi = self.getavrphimesh()
+                self.avphi = self.getavrphimesh() #Get initial average phi for engineering case
             self.t += self.dt  # t for titles
             if self.init_type != 1:
                 if round(self.t % 0.05, 6) == 0:
-                    self.visualize(self.init_type, self.viz_type)
-            if self.init_type == 4:
-                self.avphi = np.where(self.avphi > self.getavrphimesh(), self.avphi,  self.getavrphimesh())
+                    self.visualize(self.init_type, self.viz_type) #Draws a graph every 0.05s
+            if self.init_type == 4: # Tracks average phi values for engineering sim case
+                self.avphi = np.where(self.avphi > self.getavrphimesh(), self.avphi,  self.getavrphimesh()) 
                 self.avphi = np.where(self.avphi >= 0.3, np.ones((self.Nx, self.Ny)), self.avphi)
         return self.x, self.y, self.avphi
 
@@ -264,7 +269,7 @@ class Simulation:
     # Visualize the data
     def visualize(self, init_type, viz_type):
 
-        if init_type == 1:
+        if init_type == 1: # Draw 1D graph
             self.avphi = self.getavrphimesh()
             self.RMSE = self.error_analysis()
             print(self.error_analysis())
@@ -278,7 +283,7 @@ class Simulation:
             plt.show()
 
         else:
-            if viz_type == 1:
+            if viz_type == 1: # Draw Particles
                 col = np.where(self.phi == 1, self.blue, self.red)  # create array of colours for each point
                 plt.scatter(self.x, self.y, color=col, s=0.1)
                 plt.title('2D Particle Location Visualisation at ' + str(round(self.t / self.dt) * self.dt) + ' s', fontdict=None,
@@ -287,25 +292,25 @@ class Simulation:
                 plt.ylabel('y')
                 plt.show()
 
-            if viz_type == 2:
-                if self.init_type != 4:
+            if viz_type == 2: #Draw concentration
+                if self.init_type != 4: # Get average phi for all cases except the enginering case
                     self.avphi = self.getavrphimesh()
-                if self.init_type == 4 and self.t == 0:
+                if self.init_type == 4 and self.t == 0: # Get average phi for the enginering case
                     self.avphi = self.getavrphimesh()
                 plt.imshow(self.avphi, interpolation='nearest', cmap=self.cmap,
                            extent=(self.x_min, self.x_max, self.y_min,
                                    self.y_max))  # interpolate = ?, cmap = colour map, extent changes graph size
-                if self.init_type != 4:
+                if self.init_type != 4: # Plot colour bar label for all cases but the engineering case
                     plt.colorbar(label='Concentration, ϕ')  # colour map legend
-                if self.init_type == 4:
+                if self.init_type == 4: # Plot colour bar label for the engineering case
                     plt.colorbar(label='Largest concentration reached, ϕ')  # colour map legend
                 plt.title('2D Particle Concentration Representation at ' + str(round(self.t / self.dt) * self.dt) + ' s',
                           fontdict=None, loc='center', pad=20)  # Plot Titles
                 plt.xlabel('x')
                 plt.ylabel('y')
                 plt.show()  # plot it!
-
-    def start_simulation(self, init_type, viz_type):
+                
+    def start_simulation(self, init_type, viz_type): # Starts the simulation
 
         starttime = time.time()
 
