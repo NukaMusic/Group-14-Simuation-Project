@@ -29,7 +29,7 @@ def call_simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, st
     #Imports Gui Input Values
     temp = Simulation(path, min_x, max_x, min_y, max_y, euler_x, euler_y, time, step_size, num_particles, diff,
                       init_type, viz_type, use_vel)
-    temp.start_simulation(init_type, viz_type)
+    temp.start_simulation()
 
 
 def sim_callback():
@@ -106,10 +106,10 @@ with dpg.window(label="Parameters", width=800):
     dpg.add_radio_button(tag="init_type", items=("1D problem", "Middle Patch", "Side Patch", "Engineering Simulation"), default_value=1, label= " Initial Cond.", horizontal= True)
    
     dpg.add_text("Vis Type:")
-    dpg.add_radio_button(tag="viz_type",items=("Concentration Field", "Particles"), default_value=2, label=" Vis. Display ", horizontal = True)
+    dpg.add_radio_button(tag="viz_type", items=("Concentration Field", "Particles"), default_value=2, label=" Vis. Display ", horizontal=True)
    
     dpg.add_text("Vel Type: True for Velocity field to be one, False for off")
-    dpg.add_radio_button(tag="use_vel", items=("True", "False"), default_value=1, label=" Vel. Field Conditions", horizontal= True)  # (change this to be a true and false button maybe?)
+    dpg.add_radio_button(tag="use_vel", items=("True", "False"), default_value=1, label=" Vel. Field Conditions", horizontal=True)  # (change this to be a true and false button maybe?)
     dpg.add_button(label="Run Simulation", callback=sim_callback)
 
 
@@ -214,7 +214,7 @@ class Simulation:
 
     def do_math(self): #Solve advection and diffusion of the particles
         for _ in np.arange(0, self.t_max, self.dt):# Iterate
-            if self.use_vel == 1: # Solve with velocities if desired
+            if self.use_vel == 1:  # Solve with velocities if desired
                 v_x, v_y = self.get_velocities()
                 self.x += v_x * self.dt  # Advection
                 self.y += v_y * self.dt  # Advection
@@ -225,15 +225,15 @@ class Simulation:
             self.x = np.where(self.x < self.x_min, 2 * self.x_min - self.x, self.x)  # position to bounce off wall as
             self.y = np.where(self.y > self.y_max, 2 * self.y_max - self.y, self.y)  # far as it went beyond the wall
             self.y = np.where(self.y < self.y_min, 2 * self.y_min - self.y, self.y)
-            if self.t == 0:
-                self.avphi = self.getavrphimesh() #Get initial average phi for engineering case
-            self.t += self.dt  # t for titles
             if self.init_type != 1:
                 if round(self.t % 0.05, 6) == 0:
-                    self.visualize(self.init_type, self.viz_type) #Draws a graph every 0.05s
-            if self.init_type == 4: # Tracks average phi values for engineering sim case
-                self.avphi = np.where(self.avphi > self.getavrphimesh(), self.avphi,  self.getavrphimesh()) 
+                    self.visualize()  # Draws a graph every 0.05 s of simulated time
+            if self.t == 0:
+                self.avphi = self.getavrphimesh()  # Get initial average phi for engineering case
+            if self.init_type == 4:  # Tracks average phi values for engineering sim case
+                self.avphi = np.where(self.avphi > self.getavrphimesh(), self.avphi,  self.getavrphimesh())
                 self.avphi = np.where(self.avphi >= 0.3, np.ones((self.Nx, self.Ny)), self.avphi)
+            self.t += self.dt  # t for titles
         return self.x, self.y, self.avphi
 
     def error_analysis(self):
@@ -257,9 +257,9 @@ class Simulation:
         return RMSE
     
     # Visualize the data
-    def visualize(self, init_type, viz_type):
+    def visualize(self):
 
-        if init_type == 1: # Draw 1D graph
+        if self.init_type == 1: # Draw 1D graph
             self.avphi = self.getavrphimesh()
             self.RMSE = self.error_analysis()
             print(self.error_analysis())
@@ -273,7 +273,7 @@ class Simulation:
             plt.show()
 
         else:
-            if viz_type == 1: # Draw Particles
+            if self.viz_type == 1: # Draw Particles
                 col = np.where(self.phi == 1, self.blue, self.red)  # create array of colours for each point
                 plt.scatter(self.x, self.y, color=col, s=0.1)
                 plt.title('2D Particle Location Visualisation at ' + str(round(self.t / self.dt) * self.dt) + ' s', fontdict=None,
@@ -282,7 +282,7 @@ class Simulation:
                 plt.ylabel('y')
                 plt.show()
 
-            if viz_type == 2: #Draw concentration
+            if self.viz_type == 2: #Draw concentration
                 if self.init_type != 4: # Get average phi for all cases except the enginering case
                     self.avphi = self.getavrphimesh()
                 if self.init_type == 4 and self.t == 0: # Get average phi for the enginering case
@@ -300,14 +300,14 @@ class Simulation:
                 plt.ylabel('y')
                 plt.show()  # plot it!
                 
-    def start_simulation(self, init_type, viz_type): # Starts the simulation
+    def start_simulation(self): # Starts the simulation
 
         starttime = time.time()
 
         print("[" + mp.current_process().name + "] Simulation running...")
 
         if self.init_type != 1:
-            self.visualize(init_type, viz_type)
+            self.visualize()
 
         if self.debug:
             print(time.time() - starttime)
@@ -315,7 +315,7 @@ class Simulation:
         self.x, self.y, self.avphi = self.do_math()
 
         if self.init_type == 1:
-            self.visualize(init_type, viz_type)
+            self.visualize()
 
         if self.debug:
             print(time.time() - starttime)
