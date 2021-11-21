@@ -303,6 +303,26 @@ class Simulation:
                 plt.xlabel('x')
                 plt.ylabel('y')
                 plt.show()  # plot it!
+
+    def error_analysis(self):
+
+        # Parameter and array set up for RMSE analysis
+        ref_y = self.oneD_ref[:, 1]
+        ref_x = self.oneD_ref[:, 0]
+        lined_up_y = []
+        avr_x = np.linspace(self.x_min, self.x_max, self.Nx)
+        avr_y = self.getavrphimesh()[0]
+
+        # interpolate a function for the ref array
+        ref_func = interp1d(ref_x, ref_y, "linear", fill_value="extrapolate")
+
+        for item in avr_x:
+            # item = y value for predicted
+            lined_up_y.append(ref_func(item))
+
+        MSE = np.square(np.subtract(lined_up_y, avr_y)).mean()
+        RMSE = math.sqrt(MSE)
+        return RMSE
                 
     def start_simulation(self): # Starts the simulation
 
