@@ -258,7 +258,6 @@ class Simulation:
           
         MSE = np.square(np.subtract(lined_up_y, avr_y)).mean()
         RMSE = math.sqrt(MSE)
-        print(RMSE)
         return RMSE
     
     # Visualize the data
