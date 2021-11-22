@@ -1,10 +1,13 @@
 """
-Simulation
+Simulation for a lagrange diffusion advection problem.
+
+Contains two classes that can be used whether one wants to use the tested reliable method or the fast experimental
+method.
 
 Written by Group 14:
 Nuka Miettinen Langgård
-Conor Shannon
 Oscar Jiang
+Conor Shannon
 2021
 """
 
