@@ -14,10 +14,8 @@ from scipy.interpolate import interp1d
 import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import time  # for debugging and optimization
 import multiprocessing as mp
 import dearpygui.dearpygui as dpg
-import itertools
 
 #Initialises GUI Library
 dpg.create_context()
@@ -123,8 +121,7 @@ class Simulation:
         """
         Init class.
         """
-      
-        self.debug = False
+
         self.velocity_field = velocity_field
         self.x_min = x_min
         self.x_max = x_max
@@ -325,23 +322,16 @@ class Simulation:
                 
     def start_simulation(self): # Starts the simulation
 
-        starttime = time.time()
 
         print("[" + mp.current_process().name + "] Simulation running...")
 
         if self.init_type != 1:
             self.visualize()
 
-        if self.debug:
-            print(time.time() - starttime)
-
         self.x, self.y, self.avphi = self.do_math()
 
         if self.init_type == 1:
             self.visualize()
-
-        if self.debug:
-            print(time.time() - starttime)
 
         print("[" + mp.current_process().name + "] Simulation done.")
 
@@ -356,7 +346,6 @@ class Experimental_Method:
         Init class.
         """
 
-        self.debug = True
         self.velocity_field = velocity_field
         self.x_min = x_min
         self.x_max = x_max
@@ -536,6 +525,26 @@ class Experimental_Method:
                 plt.xlabel('x')
                 plt.ylabel('y')
                 plt.show()  # plot it!
+
+    def error_analysis(self):
+
+        # Parameter and array set up for RMSE analysis
+        ref_y = self.oneD_ref[:, 1]
+        ref_x = self.oneD_ref[:, 0]
+        lined_up_y = []
+        avr_x = np.linspace(self.x_min, self.x_max, self.Nx)
+        avr_y = self.getavrphimesh()[0]
+
+        # interpolate a function for the ref array
+        ref_func = interp1d(ref_x, ref_y, "linear", fill_value="extrapolate")
+
+        for item in avr_x:
+            # item = y value for predicted
+            lined_up_y.append(ref_func(item))
+
+        MSE = np.square(np.subtract(lined_up_y, avr_y)).mean()
+        RMSE = math.sqrt(MSE)
+        return RMSE
 
     def start_simulation(self):  # Starts the simulation
 
