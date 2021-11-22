@@ -389,7 +389,7 @@ class Experimental_Method:
             self.x_posres ** 2 + self.y_posres ** 2)  # maximum allowable distance for a particle to be from a vel coord
         self.x = np.random.uniform(self.x_min, self.x_max, size=self.N)  # initial x-positions
         self.y = np.random.uniform(self.y_min, self.y_max, size=self.N)  # initial y-positions
-        self.avpoints = (self.N / (self.Nx * self.Ny))/3.2 # average number of points expected at each granular coordiante
+        self.avpoints = (self.N / (self.Nx * self.Ny))/2  # average number of points expected at each granular coordiante
 
         if init_type == 1:
             self.phi = np.where(self.x <= 0, self.ones, self.zeros)
