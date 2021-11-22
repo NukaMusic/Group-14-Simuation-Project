@@ -10,8 +10,7 @@ Oscar Jiang
 
 import numpy as np
 from scipy import spatial
-from scipy.interpolate import interp1d 
-import math
+from scipy.interpolate import interp1d
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import multiprocessing as mp
@@ -254,7 +253,7 @@ class Simulation:
             lined_up_y.append(ref_func(item))
           
         MSE = np.square(np.subtract(lined_up_y, avr_y)).mean()
-        RMSE = math.sqrt(MSE)
+        RMSE = np.sqrt(MSE)
         return RMSE
     
     # Visualize the data
@@ -317,7 +316,7 @@ class Simulation:
             lined_up_y.append(ref_func(item))
 
         MSE = np.square(np.subtract(lined_up_y, avr_y)).mean()
-        RMSE = math.sqrt(MSE)
+        RMSE = np.sqrt(MSE)
         return RMSE
                 
     def start_simulation(self): # Starts the simulation
@@ -377,7 +376,7 @@ class Experimental_Method:
             self.x_posres ** 2 + self.y_posres ** 2)  # maximum allowable distance for a particle to be from a vel coord
         self.x = np.random.uniform(self.x_min, self.x_max, size=self.N)  # initial x-positions
         self.y = np.random.uniform(self.y_min, self.y_max, size=self.N)  # initial y-positions
-        self.avpoints = (self.N / (self.Nx * self.Ny))/2  # average number of points expected at each granular coordiante
+        self.avpoints = (self.N / (self.Nx * self.Ny)) / 2  # average number of points expected at each granular coordiante
 
         if init_type == 1:
             self.phi = np.where(self.x <= 0, self.ones, self.zeros)
@@ -543,7 +542,7 @@ class Experimental_Method:
             lined_up_y.append(ref_func(item))
 
         MSE = np.square(np.subtract(lined_up_y, avr_y)).mean()
-        RMSE = math.sqrt(MSE)
+        RMSE = np.sqrt(MSE)
         return RMSE
 
     def start_simulation(self):  # Starts the simulation
