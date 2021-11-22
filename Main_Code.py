@@ -124,7 +124,7 @@ class Simulation:
         Init class.
         """
       
-        self.debug = True
+        self.debug = False
         self.velocity_field = velocity_field
         self.x_min = x_min
         self.x_max = x_max
@@ -258,6 +258,7 @@ class Simulation:
           
         MSE = np.square(np.subtract(lined_up_y, avr_y)).mean()
         RMSE = math.sqrt(MSE)
+        print(RMSE)
         return RMSE
     
     # Visualize the data
@@ -266,7 +267,6 @@ class Simulation:
         if self.init_type == 1: # Draw 1D graph
             self.avphi = self.getavrphimesh()
             self.RMSE = self.error_analysis()
-            print(self.error_analysis())
             plt.plot(self.oneD_ref[:, 0], self.oneD_ref[:, 1], color='r')
             plt.scatter(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], s=15, marker='.', color='b')
             plt.plot(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], color='b')
@@ -477,7 +477,6 @@ class Experimental_Method:
         if self.init_type == 1:  # Draw 1D graph
             self.avphi = self.getavrphimesh()
             self.RMSE = self.error_analysis()
-            print(self.error_analysis())
             plt.plot(self.oneD_ref[:, 0], self.oneD_ref[:, 1], color='r')
             plt.scatter(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], s=15, marker='.', color='b')
             plt.plot(np.linspace(self.x_min, self.x_max, self.Nx), self.avphi[0], color='b')
